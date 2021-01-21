@@ -89,7 +89,7 @@ describe('game info', () => {
 describe('additional info', () => {
     it('should extract all info tags', () => {
         let expected_date = new Date(2021, 0, 21, 18, 15, 0);
-        expect(hand2.date.getTime()).toEqual(expected_date.get_time());
+        expect(hand2.date.getTime()).toEqual(expected_date.getTime());
         expect(hand2.tournament).toBe(true);
         expect(hand2.level).toEqual(4);
         expect(hand2.currency).toEqual('USD');
