@@ -14,7 +14,7 @@ const hand1 = new PSN(hand1_psn);
 
 const hand2_psn =
 `NLH 0|100|200 7
-DATE 2021-01-21T18:15:00Z LVL 4 BUY 5.00USD INFO "An example \\"bad beat\\" hand"
+DATE 2021-01-21T18:15:00Z LVL 4 BUY 5.00USD INFO "An example \\"PSN\\" hand"
 
 BTN="TheNuts2832"
 SB="the_donkey"
