@@ -85,3 +85,15 @@ describe('game info', () => {
         expect(hand2.dealer).toBe(false);
     });
 });
+
+describe('additional info', () => {
+    it('should extract all info tags', () => {
+        let expected_date = new Date(2021, 0, 21, 18, 15, 0);
+        expect(hand2.date.getTime()).toEqual(expected_date.get_time());
+        expect(hand2.tournament).toBe(true);
+        expect(hand2.level).toEqual(4);
+        expect(hand2.currency).toEqual('USD');
+        expect(hand2.buy_in).toEqual([5, 0]);
+        expect(hand2.info).toEqual('An example "PSN" hand');
+    });
+});
