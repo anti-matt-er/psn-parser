@@ -36,7 +36,7 @@ describe('game info', () => {
     it('should extract bet information', () => {
         expect(hand1.big_blind).toEqual(200);
         expect(hand1.small_blind).toEqual(100);
-        expecT(hand1.ante).toEqual(0);
+        expect(hand1.ante).toEqual(0);
     });
 
     it('should extract seat information', () => {
