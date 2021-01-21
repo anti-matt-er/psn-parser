@@ -10,7 +10,7 @@ class PSN {
     max_seats = 0;
 
     constructor(notation) {
-        this.notation = PSN.normalise_notation(notation);
+        this.unparsed_notation = PSN.normalise_notation(notation);
         this.extract();
     }
 
@@ -30,18 +30,25 @@ class PSN {
         return clean;
     }
 
+    parse_next_piece() {
+        let split_at = this.unparsed_notation.indexOf(' ');
+        let next_piece = this.unparsed_notation.slice(0, split_at);
+        this.unparsed_notation = this.unparsed_notation.slice(split_at + 1);
+        return next_piece;
+    }
+
     extract() {
         this.extract_game();
     }
 
     extract_game() {
         this.extract_bets();
-        //this.extract_seats();
+        this.extract_seats();
     }
 
     extract_bets() {
-        let notation_pieces = this.notation.split(' ', 4);
-        let bets = notation_pieces[0].split('|');
+        let section = this.parse_next_piece();
+        let bets = section.split('|');
         if (bets.length === 3) {
             this.ante = parseInt(bets[0]);
             this.small_blind = parseInt(bets[1]);
@@ -56,6 +63,32 @@ class PSN {
             this.ante = 0;
             this.big_blind = parseInt(bets[0]);
             this.small_blind = parseInt(Math.ceil(this.big_blind / 2));
+        }
+    }
+
+    extract_seats() {
+        let section = this.parse_next_piece();
+        if (section === 'BTN') {
+            this.btn_notation = true;
+            section = this.parse_next_piece();
+        }
+        let seats = section.split('/');
+        if (this.btn_notation) {
+            this.dealer = parseInt(seats[0]);
+            this.seats = parseInt(seats[1]);
+            if (seats.length === 3) {
+                this.max_seats = parseInt(seats[2]);
+            } else {
+                this.max_seats = this.seats;
+            }
+        } else {
+            this.dealer = false;
+            this.seats = parseInt(seats[0]);
+            if (seats.length === 2) {
+                this.max_seats = parseInt(seats[1]);
+            } else {
+                this.max_seats = this.seats;
+            }
         }
     }
 }
