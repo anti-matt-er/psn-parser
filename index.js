@@ -13,6 +13,8 @@ class PSN {
     seats = 0;
     max_seats = 0;
 
+    players = [];
+
     constructor(notation) {
         let raw = PSN.normalise_notation(notation);
         let game_start = raw.indexOf('#P');
@@ -50,6 +52,18 @@ class PSN {
         return [piece, rest];
     }
 
+    static parse_seat(string) {
+        let split_at = string.indexOf('=');
+        if (split_at === -1) {
+            return false;
+        }
+        let before = string.slice(0, split_at);
+        let seat_start = before.lastIndexOf(' ');
+        let seat = before.slice(seat_start + 1);
+        let rest = string.slice(split_at + 1);
+        return [seat, rest];
+    }
+
     static parse_quotes(string) {
         if (string.indexOf('"') !== 0) {
             return false;
@@ -79,10 +93,66 @@ class PSN {
         return [quoted_string, rest];
     }
 
+    generate_player(seat) {
+        let new_player = {
+            seat: seat,
+            name: null,
+            chips: null,
+            hero: false
+        };
+        this.players.push(new_player);
+        return new_player;
+    }
+
+    read_chips(chips) {
+        if (!/\d/.test(chips)) {
+            return false;
+        }
+        let amount = 0;
+        let blind_pos = chips.indexOf('B');
+        if (blind_pos === -1) {
+            if (!/^\d+$/.test(chips)) {
+                return false;
+            }
+            amount = parseInt(chips);
+        } else if (blind_pos === 0) {
+            return false;
+        } else {
+            if (blind_pos === chips.length - 1) {
+                chips = chips.slice(0, -1);
+                if (!/^\d+$/.test(chips)) {
+                    return false;
+                }
+                amount = parseInt(chips) * this.big_blind;
+            } else {
+                chips = chips.split('B');
+                if (!/^\d+$/.test(chips[0])) {
+                    return false;
+                }
+                if (!/^\d+$/.test(chips[1])) {
+                    return false;
+                }
+                amount = parseInt(chips[0]) * this.big_blind;
+                amount += parseInt(chips[1]);
+            }
+        }
+
+        return amount;
+    }
+
+    get_seat(seat) {
+        let player = this.players.find(player => player.seat === seat);
+        if (player === undefined) {
+            return false;
+        }
+        return player;
+    }
+
     extract() {
         this.extract_bets();
         this.extract_seats();
         this.extract_info();
+        this.extract_players();
     }
 
     extract_bets() {
@@ -248,6 +318,61 @@ class PSN {
                 } else {
                     done = true;
                 }
+            }
+        }
+    }
+
+    extract_players() {
+        if (this.btn_notation) {
+            for (let i = 1; i <= this.seats; i++) {
+                this.generate_player(i);
+            }
+        }
+        let pieces = PSN.parse_seat(this.pregame_notation);
+        let seat = pieces[0];
+        let rest = pieces[1];
+        let done = false;
+        let seat_valid;
+        let player;
+        let chips;
+        while (!done) {
+            seat_valid = false;
+            if (this.btn_notation) {
+                seat = parseInt(seat);
+                if (!isNaN(seat)) {
+                    seat_valid = true;
+                }
+            } else {
+                seat_valid = true;
+            }
+            if (seat_valid) {
+                player = this.players.find(player => player.seat === seat);
+                if (player === undefined) {
+                    player = this.generate_player(seat);
+                }
+                pieces = PSN.parse_quotes(rest);
+                if (pieces !== false) {
+                    player.name = pieces[0];
+                    rest = pieces[1];
+                } else {
+                    pieces = PSN.parse_piece(rest);
+                    if (pieces !== false) {
+                        chips = this.read_chips(pieces[0]);
+                        if (chips !== false) {
+                            player.chips = chips;
+                            rest = pieces[1];
+                        } else if (pieces[0] === 'HERO') {
+                            player.hero = true;
+                        }
+                    }
+                }
+            }
+            pieces = PSN.parse_seat(rest);
+            if (pieces !== false) {
+                seat = pieces[0];
+                rest = pieces[1];
+            } else {
+                done = true;
             }
         }
     }
