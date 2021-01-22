@@ -80,13 +80,9 @@ class PSN {
     }
 
     extract() {
-        this.extract_game();
-        this.extract_info();
-    }
-
-    extract_game() {
         this.extract_bets();
         this.extract_seats();
+        this.extract_info();
     }
 
     extract_bets() {
