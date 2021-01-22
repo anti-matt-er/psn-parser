@@ -97,3 +97,41 @@ describe('additional info', () => {
         expect(hand2.info).toEqual('An example "PSN" hand');
     });
 });
+
+describe('players', () => {
+    it('should extract player stacks', () => {
+        expect(hand1.get_seat(1).chips).toBeNull();
+        expect(hand1.get_seat(2).chips).toBeNull();
+        expect(hand1.get_seat(3).chips).toBeNull();
+        expect(hand1.get_seat(4).chips).toEqual(1200);
+        expect(hand1.get_seat(5).chips).toEqual(2000);
+        expect(hand1.get_seat(6).chips).toEqual(2400);
+        expect(hand1.get_seat(7).chips).toBeNull();
+
+        expect(hand2.get_seat('BTN').chips).toEqual(3210);
+        expect(hand2.get_seat('SB').chips).toEqual(1200);
+        expect(hand2.get_seat('BB').chips).toEqual(2000);
+        expect(hand2.get_seat('UTG').chips).toEqual(2400);
+        expect(hand2.get_seat('UTG+1').chips).toEqual(1799);
+        expect(hand2.get_seat('MP').chips).toEqual(1825);
+        expect(hand2.get_seat('CO').chips).toEqual(4045);
+    });
+
+    it('should extract player names', () => {
+        expect(hand1.get_seat(1).name).toBeNull();
+        expect(hand1.get_seat(2).name).toBeNull();
+        expect(hand1.get_seat(3).name).toBeNull();
+        expect(hand1.get_seat(4).name).toBeNull();
+        expect(hand1.get_seat(5).name).toBeNull();
+        expect(hand1.get_seat(6).name).toBeNull();
+        expect(hand1.get_seat(7).name).toBeNull();
+
+        expect(hand2.get_seat('BTN').name).toEqual('TheNuts2832');
+        expect(hand2.get_seat('SB').name).toEqual('the_donkey');
+        expect(hand2.get_seat('BB').name).toEqual('Aceiraptor');
+        expect(hand2.get_seat('UTG').name).toEqual('anti-matt-er');
+        expect(hand2.get_seat('UTG+1').name).toEqual('Und3rd0g');
+        expect(hand2.get_seat('MP').name).toEqual('nit1989');
+        expect(hand2.get_seat('CO').name).toEqual('bigmoney00');
+    });
+});
