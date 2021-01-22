@@ -1,7 +1,8 @@
 'use strict';
 
 class PSN {
-    unparsed_notation = '';
+    pregame_notation = '';
+    game_notation = '';
     game_start = false;
 
     big_blind = 0;
@@ -13,7 +14,10 @@ class PSN {
     max_seats = 0;
 
     constructor(notation) {
-        this.unparsed_notation = PSN.normalise_notation(notation);
+        let raw = PSN.normalise_notation(notation);
+        let game_start = raw.indexOf('#P');
+        this.pregame_notation = raw.slice(0, game_start);
+        this.game_notation = raw.slice(game_start + 1);
         this.extract();
     }
 
@@ -36,48 +40,43 @@ class PSN {
         return clean;
     }
 
-    parse_next_piece() {
-        let split_at = this.unparsed_notation.indexOf(' ');
-        let next_piece = this.unparsed_notation.slice(0, split_at);
-        this.unparsed_notation = this.unparsed_notation.slice(split_at + 1);
-        this.check_game_start();
-        return next_piece;
-    }
-
-    parse_next_string() {
-        if (this.unparsed_notation.indexOf('"') !== 0) {
+    static parse_piece(string) {
+        let split_at = string.indexOf(' ');
+        if (split_at === -1) {
             return false;
         }
-        let quoted_string = this.unparsed_notation.slice(1);
+        let piece = string.slice(0, split_at);
+        let rest = string.slice(split_at + 1);
+        return [piece, rest];
+    }
+
+    static parse_quotes(string) {
+        if (string.indexOf('"') !== 0) {
+            return false;
+        }
+        let string_remainder = string.slice(1);
         let quote_end = false;
-        let next_quote = quoted_string.indexOf('"');
+        let next_quote = string_remainder.indexOf('"');
         while (!quote_end) {
             if (next_quote < 1) {
                 return false;
             }
-            if (quoted_string[next_quote - 1] !== '\\') {
+            if (string_remainder[next_quote - 1] !== '\\') {
                 quote_end = true;
             } else {
-                next_quote = quoted_string.indexOf('"', next_quote + 1);
+                next_quote = string_remainder.indexOf('"', next_quote + 1);
             }
         }
         if (
-            next_quote < quoted_string.length &&
-            quoted_string[next_quote + 1] !== ' '
+            next_quote < string_remainder.length &&
+            string_remainder[next_quote + 1] !== ' '
         ) {
             throw 'Error: Quoted strings must be followed by whitespace!';
         }
-        let next_piece = quoted_string.slice(0, next_quote);
-        next_piece = next_piece.replace(/\\"/g, '"');
-        this.unparsed_notation = quoted_string.slice(next_quote + 1);
-        this.check_game_start();
-        return next_piece;
-    }
-
-    check_game_start() {
-        if (this.unparsed_notation.indexOf('#P') === 0) {
-            this.game_start = true;
-        }
+        let quoted_string = string_remainder.slice(0, next_quote);
+        quoted_string = quoted_string.replace(/\\"/g, '"');
+        let rest = string_remainder.slice(next_quote + 1);
+        return [quoted_string, rest];
     }
 
     extract() {
@@ -91,8 +90,9 @@ class PSN {
     }
 
     extract_bets() {
-        let section = this.parse_next_piece();
-        let bets = section.split('|');
+        let pieces = PSN.parse_piece(this.pregame_notation);
+        let bets = pieces[0].split('|');
+        this.pregame_notation = pieces[1];
         if (bets.length === 3) {
             this.ante = parseInt(bets[0]);
             this.small_blind = parseInt(bets[1]);
@@ -111,10 +111,14 @@ class PSN {
     }
 
     extract_seats() {
-        let section = this.parse_next_piece();
+        let pieces = PSN.parse_piece(this.pregame_notation);
+        let section = pieces[0];
+        this.pregame_notation = pieces[1];
         if (section === 'BTN') {
             this.btn_notation = true;
-            section = this.parse_next_piece();
+            pieces = PSN.parse_piece(this.pregame_notation);
+            section = pieces[0];
+            this.pregame_notation = pieces[1];
         }
         let seats = section.split('/');
         if (this.btn_notation) {
@@ -137,36 +141,65 @@ class PSN {
     }
 
     extract_info() {
-        while (!this.game_start) {
-            let section = this.parse_next_piece();
+        let pieces = PSN.parse_piece(this.pregame_notation);
+        let section = pieces[0];
+        let rest = pieces[1];
+        let done = false;
+        while (!done) {
             switch (section) {
                 case 'DATE':
-                    let date = new Date(this.parse_next_piece());
+                    pieces = PSN.parse_piece(rest);
+                    if (pieces === false) {
+                        done = true;
+                        break;
+                    }
+                    let date = new Date(pieces[0]);
                     if (isNaN(date)) {
                         throw 'Error: Invaild DATE format!';
                     }
                     this.date = date;
+                    section = pieces[0];
+                    rest = pieces[1];
                     break;
                 case 'CASH':
-                    let currency = this.parse_next_piece();
+                    pieces = PSN.parse_piece(rest);
+                    if (pieces === false) {
+                        done = true;
+                        break;
+                    }
+                    let currency = pieces[0];
                     if (currency.length !== 3) {
                         throw 'Error: Invalid CASH currency!';
                     }
                     this.tournament = false;
                     this.cash_game = true;
                     this.currency = currency;
+                    section = pieces[0];
+                    rest = pieces[1];
                     break;
                 case 'LVL':
-                    let level = parseInt(this.parse_next_piece());
+                    pieces = PSN.parse_piece(rest);
+                    if (pieces === false) {
+                        done = true;
+                        break;
+                    }
+                    let level = parseInt(pieces[0]);
                     if (isNaN(level)) {
                         throw 'Error: Invalid LEVEL!';
                     }
                     this.tournament = true;
                     this.cash_game = false;
                     this.level = level;
+                    section = pieces[0];
+                    rest = pieces[1];
                     break;
                 case 'BUY':
-                    let buy_in = this.parse_next_piece();
+                    pieces = PSN.parse_piece(rest);
+                    if (pieces === false) {
+                        done = true;
+                        break;
+                    }
+                    let buy_in = pieces[0];
                     if (
                         buy_in.length > 3 &&
                         /[^a-z]/i.test(buy_in)
@@ -189,14 +222,36 @@ class PSN {
                         throw 'Error: Invalid BUY!';
                     }
                     this.buy_in = buy_in;
+                    section = pieces[0];
+                    rest = pieces[1];
                     break;
                 case 'INFO':
-                    let info = this.parse_next_string();
+                    pieces = PSN.parse_quotes(rest);
+                    if (pieces === false) {
+                        done = true;
+                        break;
+                    }
+                    let info = pieces[0];
                     if (info === false) {
                         throw 'Error: Invalid INFO!';
                     }
                     this.info = info;
+                    section = pieces[0];
+                    rest = pieces[1];
                     break;
+            }
+            pieces = PSN.parse_quotes(rest);
+            if (pieces !== false) {
+                section = pieces[0];
+                rest = pieces[1];
+            } else {
+                pieces = PSN.parse_piece(rest);
+                if (pieces !== false) {
+                    section = pieces[0];
+                    rest = pieces[1];
+                } else {
+                    done = true;
+                }
             }
         }
     }
