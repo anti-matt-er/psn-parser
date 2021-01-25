@@ -134,4 +134,14 @@ describe('players', () => {
         expect(hand2.get_seat('MP').name).toEqual('nit1989');
         expect(hand2.get_seat('CO').name).toEqual('bigmoney00');
     });
+
+    it('should understand various seat identities', () => {
+        expect(hand1.get_seat(1)).toEqual(hand1.get_seat('MP'));
+        expect(hand1.get_seat(2)).toEqual(hand1.get_seat('CO'));
+        expect(hand1.get_seat(3)).toEqual(hand1.get_seat('BTN'));
+        expect(hand1.get_seat(4)).toEqual(hand1.get_seat('SB'));
+        expect(hand1.get_seat(5)).toEqual(hand1.get_seat('BB'));
+        expect(hand1.get_seat(6)).toEqual(hand1.get_seat('UTG'));
+        expect(hand1.get_seat(7)).toEqual(hand1.get_seat('UTG+1'));
+    });
 });
