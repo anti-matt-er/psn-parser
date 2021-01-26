@@ -1,8 +1,7 @@
 'use strict';
 
 class PSN {
-    pregame_notation = '';
-    game_notation = '';
+    sections = null;
     game_start = false;
 
     big_blind = 0;
@@ -16,11 +15,8 @@ class PSN {
     players = [];
 
     constructor(notation) {
-        let raw = PSN.normalise_notation(notation);
-        let game_start = raw.indexOf('#P');
-        this.pregame_notation = raw.slice(0, game_start);
-        this.game_notation = raw.slice(game_start + 1);
-        this.extract();
+        notation = PSN.normalise_notation(notation);
+        this.extract(notation);
     }
 
     static normalise_notation(notation) {
@@ -31,7 +27,7 @@ class PSN {
         ) {
             throw 'Error: Invalid syntax!';
         }
-        return normalised.slice(4);
+        return normalised;
     }
 
     static clean_whitespace(notation) {
@@ -42,55 +38,138 @@ class PSN {
         return clean;
     }
 
-    static parse_piece(string) {
-        let split_at = string.indexOf(' ');
-        if (split_at === -1) {
-            return false;
-        }
-        let piece = string.slice(0, split_at);
-        let rest = string.slice(split_at + 1);
-        return [piece, rest];
-    }
-
-    static parse_seat(string) {
-        let split_at = string.indexOf('=');
-        if (split_at === -1) {
-            return false;
-        }
-        let before = string.slice(0, split_at);
-        let seat_start = before.lastIndexOf(' ');
-        let seat = before.slice(seat_start + 1);
-        let rest = string.slice(split_at + 1);
-        return [seat, rest];
-    }
-
-    static parse_quotes(string) {
-        if (string.indexOf('"') !== 0) {
-            return false;
-        }
-        let string_remainder = string.slice(1);
-        let quote_end = false;
-        let next_quote = string_remainder.indexOf('"');
-        while (!quote_end) {
-            if (next_quote < 1) {
-                return false;
-            }
-            if (string_remainder[next_quote - 1] !== '\\') {
-                quote_end = true;
+    split_notation(notation) {
+        let in_quotes = false;
+        let escaped = false;
+        let sections = [];
+        let index = 0;
+        let write = true;
+        for (let c of notation) {
+            write = true;
+            if (!in_quotes) {
+                if (!escaped && c === '"') {
+                    in_quotes = true;
+                }
+                if (c === ' ') {
+                    index++;
+                    write = false;
+                }
             } else {
-                next_quote = string_remainder.indexOf('"', next_quote + 1);
+                if (!escaped && c === '"') {
+                    in_quotes = false;
+                }
+            }
+            if (write) {
+                if (index >= sections.length) {
+                    sections[index] = '';
+                }
+                sections[index] += c;
+            }
+            escaped = false;
+            if (c === '\\') {
+                escaped = true;
             }
         }
-        if (
-            next_quote < string_remainder.length &&
-            string_remainder[next_quote + 1] !== ' '
-        ) {
-            throw 'Error: Quoted strings must be followed by whitespace!';
+
+        return sections;
+    }
+
+    split_sections(sections) {
+        this.btn_notation = (sections[2] === 'BTN');
+        let game_req = (i, btn) => {
+            if (btn) {
+                return i > 3;
+            }
+            return i > 2;
+        };
+        let tags = {
+            NLH: (i, btn) => {
+                return i === 0;
+            },
+            BTN: (i, btn) => {
+                return i === 2; 
+            },
+            DATE: game_req,
+            CASH: game_req,
+            LVL: game_req,
+            BUY: game_req,
+            INFO: game_req
+        };
+        let splitted = {
+            tags: {},
+            raw: [],
+            '=': [],
+            ':': [],
+            winner: null
+        };
+        for (let i = 0; i < sections.length; i++) {
+            let section = sections[i];
+            if (section in tags) {
+                if (!tags[section](i, this.btn_notation)) {
+                    throw 'Error: invalid syntax for ' + section + '! Index is ' + i;
+                }
+                splitted.tags[section] = this.unquote(sections[i + 1]);
+                i++;
+            } else {
+                let parsed = null;
+                let delimited = false;
+                let quote_pos = section.indexOf('"');
+                if (quote_pos === -1) {
+                    quote_pos = section.length + 1;
+                }
+                if (
+                    section.indexOf('=') !== -1 &&
+                    section.indexOf('=') < quote_pos
+                ) {
+                    parsed = section.split('=', 2);
+                    splitted['='].push(parsed);
+                    delimited = true;
+                }
+                if (
+                    section.indexOf(':') !== -1 &&
+                    section.indexOf(':') < quote_pos
+                ) {
+                    parsed = section.split(':', 2);
+                    splitted[':'].push(parsed);
+                    delimited = true;
+                }
+                if (!delimited) {
+                    let winner = false;
+                    if ((i + 1) < sections.length) {
+                        let next_section = sections[i + 1];
+                        if (next_section === 'WIN') {
+                            if (
+                                !game_req(i + 1, this.btn_notation) ||
+                                (i + 2) >= sections.length
+                            ) {
+                                throw 'Error: invalid syntax for WIN! Index is ' + (i + 1);
+                            }
+                            winner = true;
+                            splitted.winner = [
+                                section,
+                                sections[i + 2]
+                            ];
+                        }
+                    }
+                    if (!winner) {
+                        splitted.raw.push(this.unquote(section));
+                    }
+                }
+            }
         }
-        let quoted_string = string_remainder.slice(0, next_quote);
-        quoted_string = quoted_string.replace(/\\"/g, '"');
-        let rest = string_remainder.slice(next_quote + 1);
-        return [quoted_string, rest];
+
+        return splitted;
+    }
+
+    unquote(string) {
+        if (
+            string.indexOf('"') === 0 &&
+            string.lastIndexOf('"') === string.length - 1
+        ) {
+            string = string.replace(/\\"/g, '"');
+            string = string.slice(1, -1);
+        }
+        return string;
     }
 
     generate_player(seat) {
@@ -148,17 +227,17 @@ class PSN {
         return player;
     }
 
-    extract() {
+    extract(notation) {
+        let sections = this.split_notation(notation);
+        this.sections = this.split_sections(sections);
         this.extract_bets();
         this.extract_seats();
-        this.extract_info();
+        this.extract_tags();
         this.extract_players();
     }
 
     extract_bets() {
-        let pieces = PSN.parse_piece(this.pregame_notation);
-        let bets = pieces[0].split('|');
-        this.pregame_notation = pieces[1];
+        let bets = this.sections.tags.NLH.split('|');
         if (bets.length === 3) {
             this.ante = parseInt(bets[0]);
             this.small_blind = parseInt(bets[1]);
@@ -177,16 +256,11 @@ class PSN {
     }
 
     extract_seats() {
-        let pieces = PSN.parse_piece(this.pregame_notation);
-        let section = pieces[0];
-        this.pregame_notation = pieces[1];
-        if (section === 'BTN') {
-            this.btn_notation = true;
-            pieces = PSN.parse_piece(this.pregame_notation);
-            section = pieces[0];
-            this.pregame_notation = pieces[1];
+        let seats = this.sections.raw[0];
+        if (this.btn_notation) {
+            seats = this.sections.tags.BTN;
         }
-        let seats = section.split('/');
+        seats = seats.split('/');
         if (this.btn_notation) {
             this.dealer = parseInt(seats[0]);
             this.seats = parseInt(seats[1]);
@@ -206,66 +280,38 @@ class PSN {
         }
     }
 
-    extract_info() {
-        let pieces = PSN.parse_piece(this.pregame_notation);
-        let section = pieces[0];
-        let rest = pieces[1];
-        let done = false;
-        while (!done) {
-            switch (section) {
+    extract_tags() {
+        let tags = Object.keys(this.sections.tags);
+        for (let tag of tags) {
+            let value = this.sections.tags[tag];
+            switch(tag) {
                 case 'DATE':
-                    pieces = PSN.parse_piece(rest);
-                    if (pieces === false) {
-                        done = true;
-                        break;
-                    }
-                    let date = new Date(pieces[0]);
+                    let date = new Date(value);
                     if (isNaN(date)) {
-                        throw 'Error: Invaild DATE format!';
+                        throw 'Error: Invaild DATE format (' + value + ')!';
                     }
                     this.date = date;
-                    section = pieces[0];
-                    rest = pieces[1];
                     break;
                 case 'CASH':
-                    pieces = PSN.parse_piece(rest);
-                    if (pieces === false) {
-                        done = true;
-                        break;
-                    }
-                    let currency = pieces[0];
+                    let currency = value;
                     if (currency.length !== 3) {
                         throw 'Error: Invalid CASH currency!';
                     }
                     this.tournament = false;
                     this.cash_game = true;
                     this.currency = currency;
-                    section = pieces[0];
-                    rest = pieces[1];
                     break;
                 case 'LVL':
-                    pieces = PSN.parse_piece(rest);
-                    if (pieces === false) {
-                        done = true;
-                        break;
-                    }
-                    let level = parseInt(pieces[0]);
+                    let level = parseInt(value);
                     if (isNaN(level)) {
                         throw 'Error: Invalid LEVEL!';
                     }
                     this.tournament = true;
                     this.cash_game = false;
                     this.level = level;
-                    section = pieces[0];
-                    rest = pieces[1];
                     break;
                 case 'BUY':
-                    pieces = PSN.parse_piece(rest);
-                    if (pieces === false) {
-                        done = true;
-                        break;
-                    }
-                    let buy_in = pieces[0];
+                    let buy_in = value;
                     if (
                         buy_in.length > 3 &&
                         /[^a-z]/i.test(buy_in)
@@ -288,36 +334,10 @@ class PSN {
                         throw 'Error: Invalid BUY!';
                     }
                     this.buy_in = buy_in;
-                    section = pieces[0];
-                    rest = pieces[1];
                     break;
                 case 'INFO':
-                    pieces = PSN.parse_quotes(rest);
-                    if (pieces === false) {
-                        done = true;
-                        break;
-                    }
-                    let info = pieces[0];
-                    if (info === false) {
-                        throw 'Error: Invalid INFO!';
-                    }
-                    this.info = info;
-                    section = pieces[0];
-                    rest = pieces[1];
+                    this.info = value;
                     break;
-            }
-            pieces = PSN.parse_quotes(rest);
-            if (pieces !== false) {
-                section = pieces[0];
-                rest = pieces[1];
-            } else {
-                pieces = PSN.parse_piece(rest);
-                if (pieces !== false) {
-                    section = pieces[0];
-                    rest = pieces[1];
-                } else {
-                    done = true;
-                }
             }
         }
     }
@@ -328,15 +348,10 @@ class PSN {
                 this.generate_player(i);
             }
         }
-        let pieces = PSN.parse_seat(this.pregame_notation);
-        let seat = pieces[0];
-        let rest = pieces[1];
-        let done = false;
-        let seat_valid;
-        let player;
-        let chips;
-        while (!done) {
-            seat_valid = false;
+        for (let seat_value of this.sections['=']) {
+            let seat = seat_value[0];
+            let value = seat_value[1];
+            let seat_valid = false;
             if (this.btn_notation) {
                 seat = parseInt(seat);
                 if (!isNaN(seat)) {
@@ -345,34 +360,22 @@ class PSN {
             } else {
                 seat_valid = true;
             }
-            if (seat_valid) {
-                player = this.players.find(player => player.seat === seat);
-                if (player === undefined) {
-                    player = this.generate_player(seat);
-                }
-                pieces = PSN.parse_quotes(rest);
-                if (pieces !== false) {
-                    player.name = pieces[0];
-                    rest = pieces[1];
-                } else {
-                    pieces = PSN.parse_piece(rest);
-                    if (pieces !== false) {
-                        chips = this.read_chips(pieces[0]);
-                        if (chips !== false) {
-                            player.chips = chips;
-                            rest = pieces[1];
-                        } else if (pieces[0] === 'HERO') {
-                            player.hero = true;
-                        }
-                    }
-                }
+            if (!seat_valid) {
+                throw 'Error: Invlaid seat identifier `' + seat + '`';
             }
-            pieces = PSN.parse_seat(rest);
-            if (pieces !== false) {
-                seat = pieces[0];
-                rest = pieces[1];
+            let player = this.players.find(player => player.seat === seat);
+            if (player === undefined) {
+                player = this.generate_player(seat);
+            }
+            let quoted = this.unquote(value);
+            if (value !== quoted) {
+                player.name = quoted;
             } else {
-                done = true;
+                if (value === 'HERO') {
+                    player.hero = true;
+                } else {
+                    player.chips = this.read_chips(value);
+                }
             }
         }
     }
