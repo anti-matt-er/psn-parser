@@ -277,6 +277,21 @@ class PSN {
         return player;
     }
 
+    get_offset(offset) {
+        if (typeof offset !== 'number') {
+            throw 'Error: Offset must be an integer!';
+        }
+        offset = offset % (this.seats - 1);
+        if (offset < 0) {
+            offset = this.seats + offset;
+        }
+        let player = this.players.find(player => player.seat.offset === offset);
+        if (player === undefined) {
+            return false;
+        }
+        return player;
+    }
+
     extract(notation) {
         let sections = this.split_notation(notation);
         this.sections = this.split_sections(sections);
