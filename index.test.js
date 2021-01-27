@@ -136,6 +136,9 @@ describe('players', () => {
     });
 
     it('should understand various seat identities', () => {
+        expect(hand1.get_seat(0)).toThrow('Invalid seat');
+        expect(hand1.get_seat(-1)).toThrow('Invalid seat');
+
         expect(hand1.get_seat(1)).toEqual(hand1.get_seat('HJ'));
         expect(hand1.get_seat(2)).toEqual(hand1.get_seat('CO'));
         expect(hand1.get_seat(3)).toEqual(hand1.get_seat('BTN'));
@@ -143,5 +146,28 @@ describe('players', () => {
         expect(hand1.get_seat(5)).toEqual(hand1.get_seat('BB'));
         expect(hand1.get_seat(6)).toEqual(hand1.get_seat('UTG'));
         expect(hand1.get_seat(7)).toEqual(hand1.get_seat('UTG+1'));
+        
+        expect(hand1.get_offset(-2)).toEqual(hand1.get_seat('HG'));
+        expect(hand1.get_offset(-1)).toEqual(hand1.get_seat('CO'));
+        expect(hand1.get_offset(0)).toEqual(hand1.get_seat('BTN'));
+        expect(hand1.get_offset(1)).toEqual(hand1.get_seat('SB'));
+        expect(hand1.get_offset(2)).toEqual(hand1.get_seat('BB'));
+
+        expect(hand2.get_seat(0)).toThrow('Invalid seat');
+        expect(hand2.get_seat(-1)).toThrow('Invalid seat');
+
+        expect(hand2.get_seat(1)).toEqual(hand2.get_seat('BTN'));
+        expect(hand2.get_seat(2)).toEqual(hand2.get_seat('SB'));
+        expect(hand2.get_seat(3)).toEqual(hand2.get_seat('BB'));
+        expect(hand2.get_seat(4)).toEqual(hand2.get_seat('UTG'));
+        expect(hand2.get_seat(5)).toEqual(hand2.get_seat('UTG+1'));
+        expect(hand2.get_seat(6)).toEqual(hand2.get_seat('HJ'));
+        expect(hand2.get_seat(7)).toEqual(hand2.get_seat('CO'));
+
+        expect(hand2.get_offset(-2)).toEqual(hand2.get_seat('HG'));
+        expect(hand2.get_offset(-1)).toEqual(hand2.get_seat('CO'));
+        expect(hand2.get_offset(0)).toEqual(hand2.get_seat('BTN'));
+        expect(hand2.get_offset(1)).toEqual(hand2.get_seat('SB'));
+        expect(hand2.get_offset(2)).toEqual(hand2.get_seat('BB'));
     });
 });
