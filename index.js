@@ -14,6 +14,30 @@ class PSN {
 
     players = [];
 
+    static seat_identifiers = {
+        normal: [
+            { offset: 0, ids: ['BTN', 'OTB', 'BU', 'D'] },
+            { offset: 1, ids: ['SB', 'S'] },
+            { offset: 2, ids: ['BB', 'B'] },
+            { offset: 3, ids: ['UTG', 'UG', 'U'] },
+            { offset: 4, ids: ['UTG+1', 'UG+1', 'U+1'] },
+            { offset: 5, ids: ['UTG+2', 'UG+2', 'U+2'] },
+            { offset: 6, ids: ['UTG+3', 'UG+3', 'U+3'] },
+            { offset: 7, ids: ['UTG+4', 'UG+4', 'U+4'] },
+            { offset: 8, ids: ['UTG+5', 'UG+5', 'U+5'] },
+            { offset: 9, ids: ['UTG+6', 'UG+6', 'U+6'] },
+            { offset: 10, ids: ['UTG+7', 'UG+7', 'U+7'] },
+            { offset: 11, ids: ['UTG+8', 'UG+8', 'U+8'] },
+            { offset: -1, ids: ['CO', 'C'] },
+            { offset: -2, ids: ['HJ', 'H'] },
+            { offset: -3, ids: ['LJ', 'L'] }
+        ],
+        heads_up: [
+            { offset: 0, ids: ['BTN', 'OTB', 'BU', 'D', 'SB', 'S'] },
+            { offset: 1, ids: ['BB', 'B'] }
+        ]
+    };
+
     constructor(notation) {
         notation = PSN.normalise_notation(notation);
         this.extract(notation);
@@ -172,9 +196,30 @@ class PSN {
         return string;
     }
 
-    generate_player(seat) {
+    generate_player(seat_number) {
+        let offset = seat_number - 1;
+        if (this.btn_notation) {
+            offset -= (this.dealer - 1);
+        }
+        if (offset < 0) {
+            offset += this.seats;
+        }
+        let id = PSN.seat_identifiers.normal.find(
+            identifier =>  identifier.offset === offset
+        ).ids;
+        let negative_offset = offset - this.seats;
+        if (negative_offset > -4 && negative_offset < 0) {
+            let negative_id = PSN.seat_identifiers.normal.find(
+                identifier =>  identifier.offset === negative_offset
+            ).ids;
+            id = id.concat(negative_id);
+        }
         let new_player = {
-            seat: seat,
+            seat: {
+                offset: offset,
+                number: seat_number,
+                id: id
+            },
             name: null,
             chips: null,
             hero: false
@@ -220,7 +265,12 @@ class PSN {
     }
 
     get_seat(seat) {
-        let player = this.players.find(player => player.seat === seat);
+        let player = false;
+        if (typeof seat === 'number') {
+            player = this.players.find(player => player.seat.number === seat);
+        } else {
+            player = this.players.find(player => player.seat.id.includes(seat));
+        }
         if (player === undefined) {
             return false;
         }
@@ -343,10 +393,8 @@ class PSN {
     }
 
     extract_players() {
-        if (this.btn_notation) {
-            for (let i = 1; i <= this.seats; i++) {
-                this.generate_player(i);
-            }
+        for (let i = 1; i <= this.seats; i++) {
+            this.generate_player(i);
         }
         for (let seat_value of this.sections['=']) {
             let seat = seat_value[0];
@@ -363,10 +411,7 @@ class PSN {
             if (!seat_valid) {
                 throw 'Error: Invlaid seat identifier `' + seat + '`';
             }
-            let player = this.players.find(player => player.seat === seat);
-            if (player === undefined) {
-                player = this.generate_player(seat);
-            }
+            let player = this.get_seat(seat);
             let quoted = this.unquote(value);
             if (value !== quoted) {
                 player.name = quoted;
