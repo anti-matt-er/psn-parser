@@ -136,8 +136,8 @@ describe('players', () => {
     });
 
     it('should understand various seat identities', () => {
-        expect(hand1.get_seat(0)).toThrow('Invalid seat');
-        expect(hand1.get_seat(-1)).toThrow('Invalid seat');
+        expect(hand1.get_seat(0)).toEqual(false);
+        expect(hand1.get_seat(-1)).toEqual(false);
 
         expect(hand1.get_seat(1)).toEqual(hand1.get_seat('HJ'));
         expect(hand1.get_seat(2)).toEqual(hand1.get_seat('CO'));
@@ -169,8 +169,8 @@ describe('players', () => {
         expect(hand1.get_offset(1)).toEqual(hand1.get_seat('SB'));
         expect(hand1.get_offset(2)).toEqual(hand1.get_seat('BB'));
 
-        expect(hand2.get_seat(0)).toThrow('Invalid seat');
-        expect(hand2.get_seat(-1)).toThrow('Invalid seat');
+        expect(hand2.get_seat(0)).toEqual(false);
+        expect(hand2.get_seat(-1)).toEqual(false);
 
         expect(hand2.get_seat(1)).toEqual(hand2.get_seat('BTN'));
         expect(hand2.get_seat(2)).toEqual(hand2.get_seat('SB'));
