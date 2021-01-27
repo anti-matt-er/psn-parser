@@ -163,7 +163,7 @@ describe('players', () => {
         expect(hand1.get_seat('LJ')).toEqual(hand1.get_seat('L'));
         expect(hand1.get_seat('LJ')).toEqual(hand1.get_seat('UTG+1'));
         
-        expect(hand1.get_offset(-2)).toEqual(hand1.get_seat('HG'));
+        expect(hand1.get_offset(-2)).toEqual(hand1.get_seat('HJ'));
         expect(hand1.get_offset(-1)).toEqual(hand1.get_seat('CO'));
         expect(hand1.get_offset(0)).toEqual(hand1.get_seat('BTN'));
         expect(hand1.get_offset(1)).toEqual(hand1.get_seat('SB'));
@@ -196,7 +196,7 @@ describe('players', () => {
         expect(hand2.get_seat('LJ')).toEqual(hand2.get_seat('L'));
         expect(hand2.get_seat('LJ')).toEqual(hand2.get_seat('UTG+1'));
 
-        expect(hand2.get_offset(-2)).toEqual(hand2.get_seat('HG'));
+        expect(hand2.get_offset(-2)).toEqual(hand2.get_seat('HJ'));
         expect(hand2.get_offset(-1)).toEqual(hand2.get_seat('CO'));
         expect(hand2.get_offset(0)).toEqual(hand2.get_seat('BTN'));
         expect(hand2.get_offset(1)).toEqual(hand2.get_seat('SB'));
