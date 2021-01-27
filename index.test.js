@@ -146,6 +146,22 @@ describe('players', () => {
         expect(hand1.get_seat(5)).toEqual(hand1.get_seat('BB'));
         expect(hand1.get_seat(6)).toEqual(hand1.get_seat('UTG'));
         expect(hand1.get_seat(7)).toEqual(hand1.get_seat('UTG+1'));
+
+        expect(hand1.get_seat('BTN')).toEqual(hand1.get_seat('OTB'));
+        expect(hand1.get_seat('BTN')).toEqual(hand1.get_seat('BU'));
+        expect(hand1.get_seat('BTN')).toEqual(hand1.get_seat('D'));
+        expect(hand1.get_seat('SB')).toEqual(hand1.get_seat('S'));
+        expect(hand1.get_seat('BB')).toEqual(hand1.get_seat('B'));
+        expect(hand1.get_seat('UTG')).toEqual(hand1.get_seat('UG'));
+        expect(hand1.get_seat('UTG')).toEqual(hand1.get_seat('U'));
+        expect(hand1.get_seat('UTG+1')).toEqual(hand1.get_seat('UG+1'));
+        expect(hand1.get_seat('UTG+1')).toEqual(hand1.get_seat('U+1'));
+        expect(hand1.get_seat('CO')).toEqual(hand1.get_seat('C'));
+        expect(hand1.get_seat('CO')).toEqual(hand1.get_seat('UTG+3'));
+        expect(hand1.get_seat('HJ')).toEqual(hand1.get_seat('H'));
+        expect(hand1.get_seat('HJ')).toEqual(hand1.get_seat('UTG+2'));
+        expect(hand1.get_seat('LJ')).toEqual(hand1.get_seat('L'));
+        expect(hand1.get_seat('LJ')).toEqual(hand1.get_seat('UTG+1'));
         
         expect(hand1.get_offset(-2)).toEqual(hand1.get_seat('HG'));
         expect(hand1.get_offset(-1)).toEqual(hand1.get_seat('CO'));
@@ -163,6 +179,22 @@ describe('players', () => {
         expect(hand2.get_seat(5)).toEqual(hand2.get_seat('UTG+1'));
         expect(hand2.get_seat(6)).toEqual(hand2.get_seat('HJ'));
         expect(hand2.get_seat(7)).toEqual(hand2.get_seat('CO'));
+
+        expect(hand2.get_seat('BTN')).toEqual(hand2.get_seat('OTB'));
+        expect(hand2.get_seat('BTN')).toEqual(hand2.get_seat('BU'));
+        expect(hand2.get_seat('BTN')).toEqual(hand2.get_seat('D'));
+        expect(hand2.get_seat('SB')).toEqual(hand2.get_seat('S'));
+        expect(hand2.get_seat('BB')).toEqual(hand2.get_seat('B'));
+        expect(hand2.get_seat('UTG')).toEqual(hand2.get_seat('UG'));
+        expect(hand2.get_seat('UTG')).toEqual(hand2.get_seat('U'));
+        expect(hand2.get_seat('UTG+1')).toEqual(hand2.get_seat('UG+1'));
+        expect(hand2.get_seat('UTG+1')).toEqual(hand2.get_seat('U+1'));
+        expect(hand2.get_seat('CO')).toEqual(hand2.get_seat('C'));
+        expect(hand2.get_seat('CO')).toEqual(hand2.get_seat('UTG+3'));
+        expect(hand2.get_seat('HJ')).toEqual(hand2.get_seat('H'));
+        expect(hand2.get_seat('HJ')).toEqual(hand2.get_seat('UTG+2'));
+        expect(hand2.get_seat('LJ')).toEqual(hand2.get_seat('L'));
+        expect(hand2.get_seat('LJ')).toEqual(hand2.get_seat('UTG+1'));
 
         expect(hand2.get_offset(-2)).toEqual(hand2.get_seat('HG'));
         expect(hand2.get_offset(-1)).toEqual(hand2.get_seat('CO'));
