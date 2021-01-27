@@ -21,15 +21,15 @@ SB="the_donkey"
 BB="Aceiraptor"
 UTG="anti-matt-er"
 UTG+1="Und3rd0g"
-MP="nit1989"
+HJ="nit1989"
 CO="bigmoney00"
 
 UTG=HERO
 
-BTN=3210 SB=6B BB=2000 UTG=12B UTG+1=8B199 MP=9B25 CO=4045
+BTN=3210 SB=6B BB=2000 UTG=12B UTG+1=8B199 HJ=9B25 CO=4045
 
 #Preflop
-UTG:R3B UTG+1:X MP:X CO:X BTN:X SB:RA BB:C UTG:CA
+UTG:R3B UTG+1:X HJ:X CO:X BTN:X SB:RA BB:C UTG:CA
 
 #Flop[7♥ 2♥ 5♠]
 BB:C UTG:RA BB:X UTG[Q♦ A♥] BB[J♦ A♣]
@@ -113,7 +113,7 @@ describe('players', () => {
         expect(hand2.get_seat('BB').chips).toEqual(2000);
         expect(hand2.get_seat('UTG').chips).toEqual(2400);
         expect(hand2.get_seat('UTG+1').chips).toEqual(1799);
-        expect(hand2.get_seat('MP').chips).toEqual(1825);
+        expect(hand2.get_seat('HJ').chips).toEqual(1825);
         expect(hand2.get_seat('CO').chips).toEqual(4045);
     });
 
@@ -131,12 +131,12 @@ describe('players', () => {
         expect(hand2.get_seat('BB').name).toEqual('Aceiraptor');
         expect(hand2.get_seat('UTG').name).toEqual('anti-matt-er');
         expect(hand2.get_seat('UTG+1').name).toEqual('Und3rd0g');
-        expect(hand2.get_seat('MP').name).toEqual('nit1989');
+        expect(hand2.get_seat('HJ').name).toEqual('nit1989');
         expect(hand2.get_seat('CO').name).toEqual('bigmoney00');
     });
 
     it('should understand various seat identities', () => {
-        expect(hand1.get_seat(1)).toEqual(hand1.get_seat('MP'));
+        expect(hand1.get_seat(1)).toEqual(hand1.get_seat('HJ'));
         expect(hand1.get_seat(2)).toEqual(hand1.get_seat('CO'));
         expect(hand1.get_seat(3)).toEqual(hand1.get_seat('BTN'));
         expect(hand1.get_seat(4)).toEqual(hand1.get_seat('SB'));
