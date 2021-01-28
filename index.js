@@ -64,6 +64,7 @@ class PSN {
 
     split_notation(notation) {
         let in_quotes = false;
+        let in_brackets = false;
         let escaped = false;
         let sections = [];
         let index = 0;
@@ -74,7 +75,16 @@ class PSN {
                 if (!escaped && c === '"') {
                     in_quotes = true;
                 }
-                if (c === ' ') {
+                if (!in_brackets) {
+                    if (c === '[') {
+                        in_brackets = true;
+                    }
+                } else {
+                    if (c === ']') {
+                        in_brackets = false;
+                    }
+                }
+                if (c === ' ' && !in_brackets) {
                     index++;
                     write = false;
                 }
