@@ -197,6 +197,10 @@ class PSN {
     }
 
     generate_player(seat_number) {
+        let identifiers = PSN.seat_identifiers.normal;
+        if (this.seats === 2) {
+            identifiers = PSN.seat_identifiers.heads_up;
+        }
         let offset = seat_number - 1;
         if (this.btn_notation) {
             offset -= (this.dealer - 1);
@@ -204,15 +208,17 @@ class PSN {
         if (offset < 0) {
             offset += this.seats;
         }
-        let id = PSN.seat_identifiers.normal.find(
+        let id = identifiers.find(
             identifier =>  identifier.offset === offset
         ).ids;
-        let negative_offset = offset - this.seats;
-        if (negative_offset > -4 && negative_offset < 0) {
-            let negative_id = PSN.seat_identifiers.normal.find(
-                identifier =>  identifier.offset === negative_offset
-            ).ids;
-            id = id.concat(negative_id);
+        if (this.seats > 2) {
+            let negative_offset = offset - this.seats;
+            if (negative_offset > -4 && negative_offset < 0) {
+                let negative_id = identifiers.find(
+                    identifier =>  identifier.offset === negative_offset
+                ).ids;
+                id = id.concat(negative_id);
+            }
         }
         let new_player = {
             seat: {
