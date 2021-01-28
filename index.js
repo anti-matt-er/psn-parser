@@ -13,6 +13,19 @@ class PSN {
     max_seats = 0;
 
     players = [];
+    actions = {
+        preflop: [],
+        flop: [],
+        turn: [],
+        river: []
+    };
+
+    static action = {
+        FOLD: 0,
+        CHECK: 1,
+        CALL: 2,
+        RAISE: 3
+    };
 
     static seat_identifiers = {
         normal: [
@@ -110,7 +123,7 @@ class PSN {
 
     split_sections(sections) {
         this.btn_notation = (sections[2] === 'BTN');
-        let game_req = (i, btn) => {
+        const game_req = (i, btn) => {
             if (btn) {
                 return i > 3;
             }
@@ -132,10 +145,16 @@ class PSN {
         let splitted = {
             tags: {},
             raw: [],
-            '=': [],
-            ':': [],
+            seats: [],
+            actions: {
+                preflop: [],
+                flop: [],
+                turn: [],
+                river: []
+            },
             winner: null
         };
+        let street = null;
         for (let i = 0; i < sections.length; i++) {
             let section = sections[i];
             if (section in tags) {
@@ -156,15 +175,16 @@ class PSN {
                     section.indexOf('=') < quote_pos
                 ) {
                     parsed = section.split('=', 2);
-                    splitted['='].push(parsed);
+                    splitted.seats.push(parsed);
                     delimited = true;
                 }
                 if (
+                    street !== null &&
                     section.indexOf(':') !== -1 &&
                     section.indexOf(':') < quote_pos
                 ) {
                     parsed = section.split(':', 2);
-                    splitted[':'].push(parsed);
+                    splitted.actions[street].push(parsed);
                     delimited = true;
                 }
                 if (!delimited) {
@@ -186,6 +206,44 @@ class PSN {
                         }
                     }
                     if (!winner) {
+                        if (section.indexOf('#') === 0) {
+                            if (section.toLowerCase() === '#preflop') {
+                                street = 'preflop';
+                            }
+                            if (section.toLowerCase().indexOf('#flop[') === 0) {
+                                street = 'flop';
+                            }
+                            if (section.toLowerCase().indexOf('#turn[') === 0) {
+                                street = 'turn';
+                            }
+                            if (section.toLowerCase().indexOf('#river[') === 0) {
+                                street = 'river';
+                            }
+                            if (section.toLowerCase().indexOf('#end[') === 0) {
+                                street = null;
+                            }
+                            if (section.toLowerCase().indexOf('#showdown[') === 0) {
+                                street = null;
+                            }
+                            if (section.toLowerCase() === '#p') {
+                                street = 'preflop';
+                            }
+                            if (section.toLowerCase().indexOf('#f[') === 0) {
+                                street = 'flop';
+                            }
+                            if (section.toLowerCase().indexOf('#t[') === 0) {
+                                street = 'turn';
+                            }
+                            if (section.toLowerCase().indexOf('#r[') === 0) {
+                                street = 'river';
+                            }
+                            if (section.toLowerCase().indexOf('#e[') === 0) {
+                                street = null;
+                            }
+                            if (section.toLowerCase().indexOf('#s[') === 0) {
+                                street = null;
+                            }
+                        }
                         splitted.raw.push(this.unquote(section));
                     }
                 }
@@ -282,6 +340,9 @@ class PSN {
 
     get_seat(seat) {
         let player = false;
+        if (/^\d+$/.test(seat)) {
+            seat = parseInt(seat);
+        }
         if (typeof seat === 'number') {
             player = this.players.find(player => player.seat.number === seat);
         } else {
@@ -315,6 +376,7 @@ class PSN {
         this.extract_seats();
         this.extract_tags();
         this.extract_players();
+        this.extract_actions();
     }
 
     extract_bets() {
@@ -427,7 +489,7 @@ class PSN {
         for (let i = 1; i <= this.seats; i++) {
             this.generate_player(i);
         }
-        for (let seat_value of this.sections['=']) {
+        for (let seat_value of this.sections.seats) {
             let seat = seat_value[0];
             let value = seat_value[1];
             let seat_valid = false;
@@ -438,9 +500,6 @@ class PSN {
                 }
             } else {
                 seat_valid = true;
-                if (/^\d+$/.test(seat)) {
-                    seat = parseInt(seat);
-                }
             }
             if (!seat_valid) {
                 throw 'Error: Invlaid seat identifier `' + seat + '`';
@@ -455,6 +514,107 @@ class PSN {
                 } else {
                     player.chips = this.read_chips(value);
                 }
+            }
+        }
+    }
+
+    extract_actions() {
+        const get_action = (player, notation, to_call) => {
+            let action_notation = notation.slice(0, 1);
+            let action = null;
+            switch (action_notation) {
+                case 'C':
+                    if (to_call) {
+                        action = PSN.action.CALL;
+                    } else {
+                        action = PSN.action.CHECK;
+                    }
+                    break;
+                case 'K':
+                    action = PSN.action.CHECK;
+                    break;
+                case 'L':
+                    action = PSN.action.CALL;
+                    break;
+                case 'R':
+                    action = PSN.action.RAISE;
+                    break;
+                case 'X':
+                    action = PSN.action.FOLD;
+                    break;
+            }
+            let seat_action = {
+                player: player,
+                action: action
+            };
+            if (notation.length > 1) {
+                let amount = notation.slice(1);
+                if (amount.indexOf('A') === 0) {
+                    amount = -1; // temporary
+                } else {
+                    amount = this.read_chips(amount);
+                    if (amount !== false) {
+                        seat_action.amount = amount;
+                    }
+                }
+            }
+            return seat_action;
+        }
+        let seats_represented = [];
+        let players_in_play = [...this.players];
+        let players_to_call = [];
+        for (let seat of this.sections.actions.preflop) {
+            let player = this.get_seat(seat[0]);
+            let action = get_action(player, seat[1], players_to_call.includes(player));
+            this.actions.preflop.push(action);
+            if (action.action === PSN.action.RAISE) {
+                players_to_call = players_in_play.filter(p => p !== player);
+            }
+            if (action.action === PSN.action.FOLD) {
+                players_in_play = players_in_play.filter(p => p !== player);
+            }
+            seats_represented.push(player);
+        }
+        for (let player of this.players) {
+            if (!seats_represented.includes(player)) {
+                this.actions.preflop.push({
+                    player: player,
+                    action: PSN.action.FOLD
+                });
+                players_in_play = players_in_play.filter(p => p !== player);
+            }
+        }
+        for (let seat of this.sections.actions.flop) {
+            let player = this.get_seat(seat[0]);
+            let action = get_action(player, seat[1], players_to_call.includes(player));
+            this.actions.flop.push(action);
+            if (action.action === PSN.action.RAISE) {
+                players_to_call = players_in_play.filter(p => p !== player);
+            }
+            if (action.action === PSN.action.FOLD) {
+                players_in_play = players_in_play.filter(p => p !== player);
+            }
+        }
+        for (let seat of this.sections.actions.turn) {
+            let player = this.get_seat(seat[0]);
+            let action = get_action(player, seat[1], players_to_call.includes(player));
+            this.actions.turn.push(action);
+            if (action.action === PSN.action.RAISE) {
+                players_to_call = players_in_play.filter(p => p !== player);
+            }
+            if (action.action === PSN.action.FOLD) {
+                players_in_play = players_in_play.filter(p => p !== player);
+            }
+        }
+        for (let seat of this.sections.actions.river) {
+            let player = this.get_seat(seat[0]);
+            let action = get_action(player, seat[1], players_to_call.includes(player));
+            this.actions.river.push(action);
+            if (action.action === PSN.action.RAISE) {
+                players_to_call = players_in_play.filter(p => p !== player);
+            }
+            if (action.action === PSN.action.FOLD) {
+                players_in_play = players_in_play.filter(p => p !== player);
             }
         }
     }
