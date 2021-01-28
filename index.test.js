@@ -42,6 +42,16 @@ BB:C UTG:RA BB:X UTG[Q♦ A♥] BB[J♦ A♣]
 UTG WIN 3850 UTG[Q♦ A♥]PA+AQ`;
 const hand2 = new PSN(hand2_psn);
 
+const heads_up_psn =
+`NLH 200 2
+1=6B 2=12B
+#P 2:R3B 1:RA 2:C
+#F[7h2h5s]
+#T[5d]
+#R[4d]
+#S 1 WIN P 1[QdAh]PA+AQ 2[JdAc]PA+AJ`;
+const heads_up = new PSN(heads_up_psn);
+
 describe('whitespace', () => {
     const dirty_text = "This   is\n\n\nsome  file \n\r using  \r multiple  style \r\n line endings \n\r\n \r \n";
 
@@ -201,5 +211,16 @@ describe('players', () => {
         expect(hand2.get_offset(0)).toEqual(hand2.get_seat('BTN'));
         expect(hand2.get_offset(1)).toEqual(hand2.get_seat('SB'));
         expect(hand2.get_offset(2)).toEqual(hand2.get_seat('BB'));
+    });
+
+    it('should understand heads-up seat identities', () => {
+        expect(hand1.get_seat(0)).toEqual(false);
+        expect(hand1.get_seat(-1)).toEqual(false);
+        expect(hand1.get_seat(1)).toEqual(hand1.get_seat('BTN'));
+        expect(hand1.get_seat(2)).toEqual(hand1.get_seat('BB'));
+        expect(hand1.get_seat('BTN')).toEqual(hand1.get_seat('SB'));
+        expect(hand2.get_offset(-1)).toEqual(hand2.get_seat('BB'));
+        expect(hand2.get_offset(0)).toEqual(hand2.get_seat('BTN'));
+        expect(hand2.get_offset(1)).toEqual(hand2.get_seat('BB'));
     });
 });
