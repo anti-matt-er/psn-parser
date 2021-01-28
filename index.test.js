@@ -224,3 +224,30 @@ describe('players', () => {
         expect(heads_up.get_offset(1)).toEqual(heads_up.get_seat('BB'));
     });
 });
+
+describe('actions', () => {
+    it('should parse player actions', () => {
+        expect(hand1.actions.preflop).toContainEqual({ player: hand1.get_seat('UTG'), action: PSN.actions.RAISE, amount: 600 });
+        expect(hand1.actions.flop).toContainEqual({ player: hand1.get_seat('BB'), action: PSN.actions.FOLD });
+
+        expect(hand2.actions.preflop).toContainEqual({ player: hand2.get_seat('UTG'), action: PSN.actions.RAISE, amount: 600 });
+        expect(hand2.actions.flop).toContainEqual({ player: hand2.get_seat('BB'), action: PSN.actions.FOLD });
+
+        expect(heads_up.actions.preflop).toContainEqual({ player: heads_up.get_seat('BB'), action: PSN.actions.RAISE, amount: 600 });
+        expect(heads_up.actions.preflop).toContainEqual({ player: heads_up.get_seat('BB'), action: PSN.actions.CALL });
+    });
+
+    it('should assume players not present in preflop have folded', () => {
+        expect(hand1.actions.preflop).toContainEqual({ player: hand1.get_seat('UTG+1'), action: PSN.actions.FOLD });
+        expect(hand1.actions.preflop).toContainEqual({ player: hand1.get_seat('HJ'), action: PSN.actions.FOLD });
+        expect(hand1.actions.preflop).toContainEqual({ player: hand1.get_seat('CO'), action: PSN.actions.FOLD });
+        expect(hand1.actions.preflop).toContainEqual({ player: hand1.get_seat('BTN'), action: PSN.actions.FOLD });
+    });
+
+    it('should parse equal amount of actions for identical hands', () => {
+        expect(hand1.actions.preflop.length).toEqual(hand2.actions.preflop.length);
+        expect(hand1.actions.flop.length).toEqual(hand2.actions.flop.length);
+        expect(hand1.actions.turn.length).toEqual(hand2.actions.turn.length);
+        expect(hand1.actions.river.length).toEqual(hand2.actions.river.length);
+    });
+});
