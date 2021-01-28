@@ -281,7 +281,7 @@ class PSN {
         if (typeof offset !== 'number') {
             throw 'Error: Offset must be an integer!';
         }
-        offset = offset % (this.seats - 1);
+        offset = ((offset + 1) % this.seats) - 1;
         if (offset < 0) {
             offset = this.seats + offset;
         }
