@@ -228,7 +228,7 @@ describe('players', () => {
 describe('actions', () => {
     it('should parse player actions', () => {
         expect(hand1.actions.preflop).toContainEqual({ player: hand1.get_seat('UTG'), action: PSN.action.RAISE, amount: 600 });
-        expect(hand1.actions.flop).toContainEqual({ player: hand1.get_seat('BB'), action: PSN.actions.FOLD });
+        expect(hand1.actions.flop).toContainEqual({ player: hand1.get_seat('BB'), action: PSN.action.FOLD });
 
         expect(hand2.actions.preflop).toContainEqual({ player: hand2.get_seat('UTG'), action: PSN.action.RAISE, amount: 600 });
         expect(hand2.actions.flop).toContainEqual({ player: hand2.get_seat('BB'), action: PSN.action.FOLD });
