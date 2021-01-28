@@ -214,13 +214,13 @@ describe('players', () => {
     });
 
     it('should understand heads-up seat identities', () => {
-        expect(hand1.get_seat(0)).toEqual(false);
-        expect(hand1.get_seat(-1)).toEqual(false);
-        expect(hand1.get_seat(1)).toEqual(hand1.get_seat('BTN'));
-        expect(hand1.get_seat(2)).toEqual(hand1.get_seat('BB'));
-        expect(hand1.get_seat('BTN')).toEqual(hand1.get_seat('SB'));
-        expect(hand2.get_offset(-1)).toEqual(hand2.get_seat('BB'));
-        expect(hand2.get_offset(0)).toEqual(hand2.get_seat('BTN'));
-        expect(hand2.get_offset(1)).toEqual(hand2.get_seat('BB'));
+        expect(heads_up.get_seat(0)).toEqual(false);
+        expect(heads_up.get_seat(-1)).toEqual(false);
+        expect(heads_up.get_seat(1)).toEqual(heads_up.get_seat('BTN'));
+        expect(heads_up.get_seat(2)).toEqual(heads_up.get_seat('BB'));
+        expect(heads_up.get_seat('BTN')).toEqual(heads_up.get_seat('SB'));
+        expect(heads_up.get_offset(-1)).toEqual(heads_up.get_seat('BB'));
+        expect(heads_up.get_offset(0)).toEqual(heads_up.get_seat('BTN'));
+        expect(heads_up.get_offset(1)).toEqual(heads_up.get_seat('BB'));
     });
 });
