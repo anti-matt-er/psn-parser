@@ -422,6 +422,9 @@ class PSN {
                 }
             } else {
                 seat_valid = true;
+                if (/^\d+$/.test(seat)) {
+                    seat = parseInt(seat);
+                }
             }
             if (!seat_valid) {
                 throw 'Error: Invlaid seat identifier `' + seat + '`';
