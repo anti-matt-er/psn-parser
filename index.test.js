@@ -250,4 +250,15 @@ describe('actions', () => {
         expect(hand1.actions.turn.length).toEqual(hand2.actions.turn.length);
         expect(hand1.actions.river.length).toEqual(hand2.actions.river.length);
     });
+
+    it('should order assumed actions correctly', () => {
+        for (let i = 0; i < hand1.actions.preflop.length; i++) {
+            let hand1_action = hand1.actions.preflop[i];
+            let hand2_action = hand2.actions.preflop[i];
+            console.log(hand1_action.player.seat.id, hand2_action.player.seat.id);
+            console.log(hand1_action.action, hand2_action.action);
+            expect(hand1_action.player.seat.id).toEqual(hand2_action.player.seat.id);
+            expect(hand1_action.action).toEqual(hand2_action.action);
+        }
+    });
 });
