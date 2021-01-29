@@ -285,7 +285,7 @@ class PSN {
                 let negative_id = identifiers.find(
                     identifier =>  identifier.offset === negative_offset
                 ).ids;
-                id = id.concat(negative_id);
+                id = negative_id.concat(id);
             }
         }
         let new_player = {
