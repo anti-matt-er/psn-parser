@@ -9,7 +9,7 @@ const hand1_psn =
 #F[7h2h5s] 5:C 6:RA 5:X
 #T[5d]
 #R[4d]
-#S 4 WIN P 4[QdAh]PA+AQ 6[JdAc]PA+AJ`;
+#S 6 WIN P 6[QdAh]PA+AQ 5[JdAc]PA+AJ`;
 const hand1 = new PSN(hand1_psn);
 
 const hand2_psn =
