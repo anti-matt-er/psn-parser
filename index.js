@@ -519,16 +519,12 @@ class PSN {
     }
 
     extract_actions() {
-        const get_action = (player, notation, to_call) => {
+        const get_action = (player, notation) => {
             let action_notation = notation.slice(0, 1);
             let action = null;
             switch (action_notation) {
                 case 'C':
-                    if (to_call) {
-                        action = PSN.action.CALL;
-                    } else {
-                        action = PSN.action.CHECK;
-                    }
+                    action = 'C';
                     break;
                 case 'K':
                     action = PSN.action.CHECK;
@@ -565,34 +561,66 @@ class PSN {
         let players_to_call = [];
         for (let seat of this.sections.actions.preflop) {
             let player = this.get_seat(seat[0]);
-            let action = get_action(player, seat[1], players_to_call.includes(player));
+            let action = get_action(player, seat[1]);
             this.actions.preflop.push(action);
-            if (action.action === PSN.action.RAISE) {
-                players_to_call = players_in_play.filter(p => p !== player);
-            }
             if (action.action === PSN.action.FOLD) {
                 players_in_play = players_in_play.filter(p => p !== player);
             }
             seats_represented.push(player);
         }
-        for (let player of this.players) {
+        let first_seat_index = this.players.findIndex(p => p === this.get_seat('UTG'));
+        if (this.seats === 2) {
+            first_seat_index = this.players.findIndex(p => p === this.get_seat('SB'));
+        }
+        for (let i = 0; i < this.seats; i++) {
+            let seat_index = (i + first_seat_index) % this.seats;
+            let player = this.players[seat_index];
             if (!seats_represented.includes(player)) {
-                this.actions.preflop.push({
+                let first_actions = [];
+                let later_actions = this.actions.preflop;
+                if (i > 0) {
+                    first_actions = this.actions.preflop.slice(0, i);
+                    later_actions = this.actions.preflop.slice(i);
+                }
+                first_actions.push({
                     player: player,
                     action: PSN.action.FOLD
                 });
+                this.actions.preflop = first_actions.concat(later_actions);
                 players_in_play = players_in_play.filter(p => p !== player);
+            }
+        }
+        for (let action of this.actions.preflop) {
+            let player = action.player;
+            if (action.action === PSN.action.RAISE) {
+                players_to_call = players_in_play.filter(p => p !== player);
+            }
+            if (action.action === 'C') {
+                if (players_to_call.includes(player)) {
+                    action.action = PSN.action.CALL;
+                    players_to_call = players_to_call.filter(p => p !== player);
+                } else {
+                    action.action = PSN.action.CHECK;
+                }
             }
         }
         for (let seat of this.sections.actions.flop) {
             let player = this.get_seat(seat[0]);
-            let action = get_action(player, seat[1], players_to_call.includes(player));
+            let action = get_action(player, seat[1]);
             this.actions.flop.push(action);
             if (action.action === PSN.action.RAISE) {
                 players_to_call = players_in_play.filter(p => p !== player);
             }
             if (action.action === PSN.action.FOLD) {
                 players_in_play = players_in_play.filter(p => p !== player);
+            }
+            if (action.action === 'C') {
+                if (players_to_call.includes(action.player)) {
+                    action.action = PSN.action.CALL;
+                    players_to_call = players_to_call.filter(p => p !== player);
+                } else {
+                    action.action = PSN.action.CHECK;
+                }
             }
         }
         for (let seat of this.sections.actions.turn) {
@@ -605,6 +633,14 @@ class PSN {
             if (action.action === PSN.action.FOLD) {
                 players_in_play = players_in_play.filter(p => p !== player);
             }
+            if (action.action === 'C') {
+                if (players_to_call.includes(action.player)) {
+                    action.action = PSN.action.CALL;
+                    players_to_call = players_to_call.filter(p => p !== player);
+                } else {
+                    action.action = PSN.action.CHECK;
+                }
+            }
         }
         for (let seat of this.sections.actions.river) {
             let player = this.get_seat(seat[0]);
@@ -615,6 +651,14 @@ class PSN {
             }
             if (action.action === PSN.action.FOLD) {
                 players_in_play = players_in_play.filter(p => p !== player);
+            }
+            if (action.action === 'C') {
+                if (players_to_call.includes(action.player)) {
+                    action.action = PSN.action.CALL;
+                    players_to_call = players_to_call.filter(p => p !== player);
+                } else {
+                    action.action = PSN.action.CHECK;
+                }
             }
         }
     }
