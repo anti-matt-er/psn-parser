@@ -44,12 +44,12 @@ const hand2 = new PSN(hand2_psn);
 
 const heads_up_psn =
 `NLH 200 2
-1=6B 2=12B
-#P 2:R3B 1:RA 2:C
+1=12B 2=6B
+#P 1:R3B 2:RA 1:C
 #F[7h2h5s]
 #T[5d]
 #R[4d]
-#S 1 WIN P 1[QdAh]PA+AQ 2[JdAc]PA+AJ`;
+#S 2 WIN P 2[QdAh]PA+AQ 1[JdAc]PA+AJ`;
 const heads_up = new PSN(heads_up_psn);
 
 describe('whitespace', () => {
@@ -233,8 +233,8 @@ describe('actions', () => {
         expect(hand2.actions.preflop).toContainEqual({ player: hand2.get_seat('UTG'), action: PSN.action.RAISE, amount: 600 });
         expect(hand2.actions.flop).toContainEqual({ player: hand2.get_seat('BB'), action: PSN.action.FOLD });
 
-        expect(heads_up.actions.preflop).toContainEqual({ player: heads_up.get_seat('BB'), action: PSN.action.RAISE, amount: 600 });
-        expect(heads_up.actions.preflop).toContainEqual({ player: heads_up.get_seat('BB'), action: PSN.action.CALL });
+        expect(heads_up.actions.preflop).toContainEqual({ player: heads_up.get_seat('BTN'), action: PSN.action.RAISE, amount: 600 });
+        expect(heads_up.actions.preflop).toContainEqual({ player: heads_up.get_seat('BTN'), action: PSN.action.CALL });
     });
 
     it('should assume players not present in preflop have folded', () => {
@@ -255,8 +255,6 @@ describe('actions', () => {
         for (let i = 0; i < hand1.actions.preflop.length; i++) {
             let hand1_action = hand1.actions.preflop[i];
             let hand2_action = hand2.actions.preflop[i];
-            console.log(hand1_action.player.seat.id, hand2_action.player.seat.id);
-            console.log(hand1_action.action, hand2_action.action);
             expect(hand1_action.player.seat.id).toEqual(hand2_action.player.seat.id);
             expect(hand1_action.action).toEqual(hand2_action.action);
         }
