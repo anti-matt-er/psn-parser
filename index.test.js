@@ -29,7 +29,7 @@ UTG=HERO
 BTN=3210 SB=6B BB=2000 UTG=12B UTG+1=8B199 HJ=9B25 CO=4045
 
 #Preflop
-UTG:R3B UTG+1:X HJ:X CO:X BTN:X SB:RA BB:C UTG:CA
+UTG:R3B UTG+1:X HJ:X CO:X BTN:X SB:RA BB:C UTG:C
 
 #Flop[7♥ 2♥ 5♠]
 BB:C UTG:RA BB:X UTG[Q♦ A♥] BB[J♦ A♣]
@@ -39,7 +39,7 @@ BB:C UTG:RA BB:X UTG[Q♦ A♥] BB[J♦ A♣]
 #River[4♦]
 
 #Showdown
-UTG WIN 3850 UTG[Q♦ A♥]PA+AQ`;
+UTG WIN 4400 UTG[Q♦ A♥]PA+AQ`;
 const hand2 = new PSN(hand2_psn);
 
 const heads_up_psn =
