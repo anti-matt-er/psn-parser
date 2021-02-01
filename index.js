@@ -380,6 +380,7 @@ class PSN {
         this.extract_tags();
         this.extract_players();
         this.extract_actions();
+        this.award_winners();
     }
 
     extract_bets() {
@@ -851,6 +852,22 @@ class PSN {
             }
         }
         this.pot = pot;
+    }
+
+    award_winners() {
+        for (let winner of this.sections.winners) {
+            let player = this.get_seat(winner[0]);
+            let chips = winner[1];
+            if (
+                chips === 'P' ||
+                chips === 'POT'
+            ) {
+                chips = this.pot;
+            } else {
+                chips = this.read_chips(chips);
+            }
+            player.chips += chips;
+        }
     }
 }
 exports.PSN = PSN;
