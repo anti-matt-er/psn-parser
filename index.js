@@ -152,7 +152,7 @@ class PSN {
                 turn: [],
                 river: []
             },
-            winner: null
+            winners: []
         };
         let street = null;
         for (let i = 0; i < sections.length; i++) {
@@ -199,10 +199,10 @@ class PSN {
                                 throw 'Error: invalid syntax for WIN! Index is ' + (i + 1);
                             }
                             winner = true;
-                            splitted.winner = [
+                            splitted.winners.push([
                                 section,
                                 sections[i + 2]
-                            ];
+                            ]);
                         }
                     }
                     if (!winner) {
