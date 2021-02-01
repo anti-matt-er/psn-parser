@@ -295,6 +295,7 @@ class PSN {
                 id: id
             },
             name: null,
+            stack: null,
             chips: null,
             hero: false
         };
@@ -512,7 +513,8 @@ class PSN {
                 if (value === 'HERO') {
                     player.hero = true;
                 } else {
-                    player.chips = this.read_chips(value);
+                    player.stack = this.read_chips(value);
+                    player.chips = player.stack;
                 }
             }
         }
