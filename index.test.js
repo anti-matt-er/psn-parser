@@ -52,6 +52,8 @@ const heads_up_psn =
 #S 2 WIN P 2[QdAh]PA+AQ 1[JdAc]PA+AJ`;
 const heads_up = new PSN(heads_up_psn);
 
+hand1.print_hand();
+
 describe('whitespace', () => {
     const dirty_text = "This   is\n\n\nsome  file \n\r using  \r multiple  style \r\n line endings \n\r\n \r \n";
 

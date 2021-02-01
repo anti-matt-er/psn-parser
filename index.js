@@ -869,5 +869,25 @@ class PSN {
             player.chips += chips;
         }
     }
+
+    print_hand() {
+        for (let street of Object.keys(this.actions)) {
+            process.stdout.write('\nStreet: ' + street + '\n\n');
+            for (let action of this.actions[street]) {
+                let action_name = '';
+                for (let a_name of Object.keys(PSN.action)) {
+                    if (action.action === PSN.action[a_name]) {
+                        action_name = a_name;
+                        break;
+                    }
+                }
+                if ('amount' in action) {
+                    process.stdout.write(action.player.seat.id[0] + ' ' + action_name + ' ' + action.amount + '\n');
+                } else {
+                    process.stdout.write(action.player.seat.id[0] + ' ' + action_name + '\n');
+                }
+            }
+        }
+    }
 }
 exports.PSN = PSN;
