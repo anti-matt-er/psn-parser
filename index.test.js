@@ -234,7 +234,7 @@ describe('actions', () => {
         expect(hand2.actions.flop).toContainEqual({ player: hand2.get_seat('BB'), action: PSN.action.FOLD });
 
         expect(heads_up.actions.preflop).toContainEqual({ player: heads_up.get_seat('BTN'), action: PSN.action.RAISE, amount: 600 });
-        expect(heads_up.actions.preflop).toContainEqual({ player: heads_up.get_seat('BTN'), action: PSN.action.CALL });
+        expect(heads_up.actions.preflop).toContainEqual({ player: heads_up.get_seat('BTN'), action: PSN.action.CALL, amount: 400 });
     });
 
     it('should assume players not present in preflop have folded', () => {
