@@ -39,7 +39,7 @@ BB:C UTG:RA BB:X UTG[Q♦ A♥] BB[J♦ A♣]
 #River[4♦]
 
 #Showdown
-UTG WIN 4400 UTG[Q♦ A♥]PA+AQ`;
+UTG WIN 3600 UTG[Q♦ A♥]PA+AQ`;
 const hand2 = new PSN(hand2_psn);
 
 const heads_up_psn =
@@ -262,11 +262,11 @@ describe('actions', () => {
 });
 
 describe('chips', () => {
-    expect(hand1.get_seat('UTG').chips).toEqual(4400);
+    expect(hand1.get_seat('UTG').chips).toEqual(3600);
     expect(hand1.get_seat('BB').chips).toEqual(800);
     expect(hand1.get_seat('BTN').chips).toEqual(0);
     expect(hand1.get_seat('SB').chips).toEqual(0);
-    expect(hand2.get_seat('UTG').chips).toEqual(4400);
+    expect(hand2.get_seat('UTG').chips).toEqual(3600);
     expect(hand2.get_seat('BB').chips).toEqual(800);
     expect(hand2.get_seat('BTN').chips).toEqual(0);
     expect(hand2.get_seat('SB').chips).toEqual(0);
