@@ -110,21 +110,21 @@ describe('additional info', () => {
 
 describe('players', () => {
     it('should extract player stacks', () => {
-        expect(hand1.get_seat(1).chips).toBeNull();
-        expect(hand1.get_seat(2).chips).toBeNull();
-        expect(hand1.get_seat(3).chips).toBeNull();
-        expect(hand1.get_seat(4).chips).toEqual(1200);
-        expect(hand1.get_seat(5).chips).toEqual(2000);
-        expect(hand1.get_seat(6).chips).toEqual(2400);
-        expect(hand1.get_seat(7).chips).toBeNull();
+        expect(hand1.get_seat(1).stack).toBeNull();
+        expect(hand1.get_seat(2).stack).toBeNull();
+        expect(hand1.get_seat(3).stack).toBeNull();
+        expect(hand1.get_seat(4).stack).toEqual(1200);
+        expect(hand1.get_seat(5).stack).toEqual(2000);
+        expect(hand1.get_seat(6).stack).toEqual(2400);
+        expect(hand1.get_seat(7).stack).toBeNull();
 
-        expect(hand2.get_seat('BTN').chips).toEqual(3210);
-        expect(hand2.get_seat('SB').chips).toEqual(1200);
-        expect(hand2.get_seat('BB').chips).toEqual(2000);
-        expect(hand2.get_seat('UTG').chips).toEqual(2400);
-        expect(hand2.get_seat('UTG+1').chips).toEqual(1799);
-        expect(hand2.get_seat('HJ').chips).toEqual(1825);
-        expect(hand2.get_seat('CO').chips).toEqual(4045);
+        expect(hand2.get_seat('BTN').stack).toEqual(3210);
+        expect(hand2.get_seat('SB').stack).toEqual(1200);
+        expect(hand2.get_seat('BB').stack).toEqual(2000);
+        expect(hand2.get_seat('UTG').stack).toEqual(2400);
+        expect(hand2.get_seat('UTG+1').stack).toEqual(1799);
+        expect(hand2.get_seat('HJ').stack).toEqual(1825);
+        expect(hand2.get_seat('CO').stack).toEqual(4045);
     });
 
     it('should extract player names', () => {
@@ -261,7 +261,7 @@ describe('actions', () => {
     });
 });
 
-describe('chips', () => {
+describe('post-game chips', () => {
     expect(hand1.get_seat('UTG').chips).toEqual(3600);
     expect(hand1.get_seat('BB').chips).toEqual(800);
     expect(hand1.get_seat('BTN').chips).toEqual(0);
