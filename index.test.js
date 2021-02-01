@@ -262,12 +262,10 @@ describe('actions', () => {
 });
 
 describe('post-game chips', () => {
-    expect(hand1.get_seat('UTG').chips).toEqual(3600);
+    expect(hand1.get_seat('UTG').chips).toEqual(4800);
     expect(hand1.get_seat('BB').chips).toEqual(800);
-    expect(hand1.get_seat('BTN').chips).toEqual(0);
     expect(hand1.get_seat('SB').chips).toEqual(0);
-    expect(hand2.get_seat('UTG').chips).toEqual(3600);
+    expect(hand2.get_seat('UTG').chips).toEqual(4800);
     expect(hand2.get_seat('BB').chips).toEqual(800);
-    expect(hand2.get_seat('BTN').chips).toEqual(0);
     expect(hand2.get_seat('SB').chips).toEqual(0);
 });
