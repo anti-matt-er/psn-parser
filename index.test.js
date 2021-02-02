@@ -264,10 +264,12 @@ describe('actions', () => {
 });
 
 describe('post-game chips', () => {
+    it('should award and deduct chips depending on the outcome of the hand', () => {
     expect(hand1.get_seat('UTG').chips).toEqual(4800);
     expect(hand1.get_seat('BB').chips).toEqual(800);
     expect(hand1.get_seat('SB').chips).toEqual(0);
     expect(hand2.get_seat('UTG').chips).toEqual(4800);
     expect(hand2.get_seat('BB').chips).toEqual(800);
     expect(hand2.get_seat('SB').chips).toEqual(0);
+    });
 });
