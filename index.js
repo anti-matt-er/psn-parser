@@ -385,6 +385,14 @@ class PSN {
 
     extract_bets() {
         let bets = this.sections.tags.NLH.split('|');
+        for (let bet of bets) {
+            if (!/^\d+$/.test(bet)) {
+                throw 'Error: bet info should contain at minimum the big blind!';
+            }
+        }
+        if (bets.length > 3) {
+            throw 'Error: bet info should contain no more than 3 pieces!';
+        }
         if (bets.length === 3) {
             this.ante = parseInt(bets[0]);
             this.small_blind = parseInt(bets[1]);
@@ -408,7 +416,18 @@ class PSN {
             seats = this.sections.tags.BTN;
         }
         seats = seats.split('/');
+        for (let seat of seats) {
+            if (!/^\d+$/.test(seat)) {
+                throw 'Error: seat info not present!';
+            }
+        }
         if (this.btn_notation) {
+            if (seats.length < 2) {
+                throw 'Error: seat info not present!';
+            }
+            if (seats.length > 3) {
+                throw 'Error: seat info should contain no more than 3 pieces when using BTN notation!';
+            }
             this.dealer = parseInt(seats[0]);
             this.seats = parseInt(seats[1]);
             if (seats.length === 3) {
@@ -417,6 +436,12 @@ class PSN {
                 this.max_seats = this.seats;
             }
         } else {
+            if (seats.length < 1) {
+                throw 'Error: seat info not present!';
+            }
+            if (seats.length > 2) {
+                throw 'Error: seat info should contain no more than 2 pieces when not using BTN notation!';
+            }
             this.dealer = false;
             this.seats = parseInt(seats[0]);
             if (seats.length === 2) {
