@@ -136,7 +136,7 @@ class PSN {
                 return i === 0;
             },
             BTN: (i, btn) => {
-                return i === 2; 
+                return i === 2;
             },
             DATE: game_req,
             CASH: game_req,
@@ -279,13 +279,13 @@ class PSN {
             offset += this.seats;
         }
         let id = identifiers.find(
-            identifier =>  identifier.offset === offset
+            identifier => identifier.offset === offset
         ).ids;
         if (this.seats > 2) {
             let negative_offset = offset - this.seats;
             if (negative_offset > -4 && negative_offset < 0) {
                 let negative_id = identifiers.find(
-                    identifier =>  identifier.offset === negative_offset
+                    identifier => identifier.offset === negative_offset
                 ).ids;
                 id = negative_id.concat(id);
             }
@@ -456,7 +456,7 @@ class PSN {
         let tags = Object.keys(this.sections.tags);
         for (let tag of tags) {
             let value = this.sections.tags[tag];
-            switch(tag) {
+            switch (tag) {
                 case 'DATE':
                     let date = new Date(value);
                     if (isNaN(date)) {
@@ -587,6 +587,7 @@ class PSN {
             return seat_action;
         }
         let seats_represented = [];
+        let preflop_actions = [];
         let players_in_play = [...this.players];
         let players_to_call = players_in_play;
         let bet = this.big_blind;
@@ -611,7 +612,7 @@ class PSN {
         for (let seat of this.sections.actions.preflop) {
             let player = this.get_seat(seat[0]);
             let action = get_action(player, seat[1]);
-            this.actions.preflop.push(action);
+            preflop_actions.push(action);
             seats_represented.push(player);
         }
         let first_seat_index = this.players.findIndex(p => p === this.get_seat('UTG'));
@@ -623,258 +624,96 @@ class PSN {
             let player = this.players[seat_index];
             if (!seats_represented.includes(player)) {
                 let first_actions = [];
-                let later_actions = this.actions.preflop;
+                let later_actions = preflop_actions;
                 if (i > 0) {
-                    first_actions = this.actions.preflop.slice(0, i);
-                    later_actions = this.actions.preflop.slice(i);
+                    first_actions = preflop_actions.slice(0, i);
+                    later_actions = preflop_actions.slice(i);
                 }
                 first_actions.push({
                     player: player,
                     action: PSN.action.FOLD
                 });
-                this.actions.preflop = first_actions.concat(later_actions);
+                preflop_actions = first_actions.concat(later_actions);
             }
         }
-        for (let action of this.actions.preflop) {
-            let player = action.player;
-            if (action.action === PSN.action.RAISE) {
-                if (players_to_call.includes(player)) {
-                    player.chips -= (bet - current_bets[player.seat.offset]);
-                    pot += (bet - current_bets[player.seat.offset]);
-                }
-                players_to_call = players_in_play.filter(p => p !== player);
-                let raise_amount = action.amount;
-                if (raise_amount === 'A') {
-                    raise_amount = player.chips;
-                    players_in_play = players_in_play.filter(p => p !== player);
-                }
-                last_raiser = {
-                    player: player,
-                    previous_bet: current_bets[player.seat.offset],
-                    raise: raise_amount
-                }
-                player.chips -= raise_amount;
-                bet += raise_amount;
-                pot += raise_amount;
-                action.amount = raise_amount;
-                current_bets[player.seat.offset] = bet;
+        const get_actions = (street) => {
+            let actions = [];
+            for (let seat of this.sections.actions[street]) {
+                let player = this.get_seat(seat[0]);
+                let action = get_action(player, seat[1]);
+                actions.push(action);
             }
-            if (action.action === PSN.action.FOLD) {
-                players_in_play = players_in_play.filter(p => p !== player);
-                if (last_raiser !== null && players_to_call.includes(player)) {
-                    players_to_call = players_to_call.filter(p => p !== player);
-                    if (players_to_call.length === 0) {
-                        last_raiser.player.chips += last_raiser.raise;
-                        current_bets[last_raiser.player.seat.offset] = last_raiser.previous_bet;
-                        bet -= last_raiser.raise;
-                        pot -= last_raiser.raise;
-                        last_raiser = null;
-                    }
-                }
-            }
-            if (action.action === 'C') {
-                if (players_to_call.includes(player)) {
-                    action.action = PSN.action.CALL;
-                } else {
-                    action.action = PSN.action.CHECK;
-                }
-            }
-            if (action.action === PSN.action.CALL) {
-                players_to_call = players_to_call.filter(p => p !== player);
-                let call_amount = bet - current_bets[player.seat.offset];
-                call_amount = Math.min(call_amount, player.chips);
-                player.chips -= call_amount;
-                current_bets[player.seat.offset] = bet;
-                pot += call_amount;
-                last_raiser = null;
-                action.amount = call_amount;
-            }
+            return actions;
         }
-        bet = 0;
-        last_raiser = null;
-        for (let seat of Object.keys(current_bets)) {
-            current_bets[seat] = 0;
-        } 
-        for (let seat of this.sections.actions.flop) {
-            let player = this.get_seat(seat[0]);
-            let action = get_action(player, seat[1]);
-            this.actions.flop.push(action);
-            if (action.action === PSN.action.RAISE) {
-                if (players_to_call.includes(player)) {
-                    player.chips -= (bet - current_bets[player.seat.offset]);
-                    pot += (bet - current_bets[player.seat.offset]);
+        let streets = {
+            preflop: preflop_actions,
+            flop: get_actions('flop'),
+            turn: get_actions('turn'),
+            river: get_actions('river')
+        };
+        for (let street of Object.keys(streets)) {
+            let actions = streets[street];
+            for (let action of actions) {
+                let player = action.player;
+                if (action.action === PSN.action.RAISE) {
+                    if (players_to_call.includes(player)) {
+                        player.chips -= (bet - current_bets[player.seat.offset]);
+                        pot += (bet - current_bets[player.seat.offset]);
+                    }
+                    players_to_call = players_in_play.filter(p => p !== player);
+                    let raise_amount = action.amount;
+                    if (raise_amount === 'A') {
+                        raise_amount = player.chips;
+                        players_in_play = players_in_play.filter(p => p !== player);
+                    }
+                    last_raiser = {
+                        player: player,
+                        previous_bet: current_bets[player.seat.offset],
+                        raise: raise_amount
+                    }
+                    player.chips -= raise_amount;
+                    bet += raise_amount;
+                    pot += raise_amount;
+                    action.amount = raise_amount;
+                    current_bets[player.seat.offset] = bet;
                 }
-                players_to_call = players_in_play.filter(p => p !== player);
-                let raise_amount = action.amount;
-                if (raise_amount === 'A') {
-                    raise_amount = player.chips;
+                if (action.action === PSN.action.FOLD) {
                     players_in_play = players_in_play.filter(p => p !== player);
-                }
-                last_raiser = {
-                    player: player,
-                    previous_bet: current_bets[player.seat.offset],
-                    raise: raise_amount
-                }
-                player.chips -= raise_amount;
-                bet += raise_amount;
-                pot += raise_amount;
-                action.amount = raise_amount;
-                current_bets[player.seat.offset] = bet;
-            }
-            if (action.action === PSN.action.FOLD) {
-                players_in_play = players_in_play.filter(p => p !== player);
-                if (last_raiser !== null && players_to_call.includes(player)) {
-                    players_to_call = players_to_call.filter(p => p !== player);
-                    if (players_to_call.length === 0) {
-                        last_raiser.player.chips += last_raiser.raise;
-                        current_bets[last_raiser.player.seat.offset] = last_raiser.previous_bet;
-                        bet -= last_raiser.raise;
-                        pot -= last_raiser.raise;
-                        last_raiser = null;
+                    if (last_raiser !== null && players_to_call.includes(player)) {
+                        players_to_call = players_to_call.filter(p => p !== player);
+                        if (players_to_call.length === 0) {
+                            last_raiser.player.chips += last_raiser.raise;
+                            current_bets[last_raiser.player.seat.offset] = last_raiser.previous_bet;
+                            bet -= last_raiser.raise;
+                            pot -= last_raiser.raise;
+                            last_raiser = null;
+                        }
                     }
                 }
-            }
-            if (action.action === 'C') {
-                if (players_to_call.includes(action.player)) {
-                    action.action = PSN.action.CALL;
-                } else {
-                    action.action = PSN.action.CHECK;
-                }
-            }
-            if (action.action === PSN.action.CALL) {
-                players_to_call = players_to_call.filter(p => p !== player);
-                let call_amount = bet - current_bets[player.seat.offset];
-                call_amount = Math.min(call_amount, player.chips);
-                player.chips -= call_amount;
-                current_bets[player.seat.offset] = bet;
-                pot += call_amount;
-                last_raiser = null;
-                action.amount = call_amount;
-            }
-        }
-        bet = 0;
-        last_raiser = null;
-        for (let seat of Object.keys(current_bets)) {
-            current_bets[seat] = 0;
-        } 
-        for (let seat of this.sections.actions.turn) {
-            let player = this.get_seat(seat[0]);
-            let action = get_action(player, seat[1], players_to_call.includes(player));
-            this.actions.turn.push(action);
-            if (action.action === PSN.action.RAISE) {
-                if (players_to_call.includes(player)) {
-                    player.chips -= (bet - current_bets[player.seat.offset]);
-                    pot += (bet - current_bets[player.seat.offset]);
-                }
-                players_to_call = players_in_play.filter(p => p !== player);
-                let raise_amount = action.amount;
-                if (raise_amount === 'A') {
-                    raise_amount = player.chips;
-                    players_in_play = players_in_play.filter(p => p !== player);
-                }
-                last_raiser = {
-                    player: player,
-                    previous_bet: current_bets[player.seat.offset],
-                    raise: raise_amount
-                }
-                player.chips -= raise_amount;
-                bet += raise_amount;
-                pot += raise_amount;
-                action.amount = raise_amount;
-                current_bets[player.seat.offset] = bet;
-            }
-            if (action.action === PSN.action.FOLD) {
-                players_in_play = players_in_play.filter(p => p !== player);
-                if (last_raiser !== null && players_to_call.includes(player)) {
-                    players_to_call = players_to_call.filter(p => p !== player);
-                    if (players_to_call.length === 0) {
-                        last_raiser.player.chips += last_raiser.raise;
-                        current_bets[last_raiser.player.seat.offset] = last_raiser.previous_bet;
-                        bet -= last_raiser.raise;
-                        pot -= last_raiser.raise;
-                        last_raiser = null;
+                if (action.action === 'C') {
+                    if (players_to_call.includes(player)) {
+                        action.action = PSN.action.CALL;
+                    } else {
+                        action.action = PSN.action.CHECK;
                     }
                 }
-            }
-            if (action.action === 'C') {
-                if (players_to_call.includes(action.player)) {
-                    action.action = PSN.action.CALL;
-                } else {
-                    action.action = PSN.action.CHECK;
-                }
-            }
-            if (action.action === PSN.action.CALL) {
-                players_to_call = players_to_call.filter(p => p !== player);
-                let call_amount = bet - current_bets[player.seat.offset];
-                call_amount = Math.min(call_amount, player.chips);
-                player.chips -= call_amount;
-                current_bets[player.seat.offset] = bet;
-                pot += call_amount;
-                last_raiser = null;
-                action.amount = call_amount;
-            }
-        }
-        bet = 0;
-        last_raiser = null;
-        for (let seat of Object.keys(current_bets)) {
-            current_bets[seat] = 0;
-        } 
-        for (let seat of this.sections.actions.river) {
-            let player = this.get_seat(seat[0]);
-            let action = get_action(player, seat[1], players_to_call.includes(player));
-            this.actions.river.push(action);
-            if (action.action === PSN.action.RAISE) {
-                if (players_to_call.includes(player)) {
-                    player.chips -= (bet - current_bets[player.seat.offset]);
-                    pot += (bet - current_bets[player.seat.offset]);
-                }
-                players_to_call = players_in_play.filter(p => p !== player);
-                let raise_amount = action.amount;
-                if (raise_amount === 'A') {
-                    raise_amount = player.chips;
-                    players_in_play = players_in_play.filter(p => p !== player);
-                }
-                last_raiser = {
-                    player: player,
-                    previous_bet: current_bets[player.seat.offset],
-                    raise: raise_amount
-                }
-                player.chips -= raise_amount;
-                bet += raise_amount;
-                pot += raise_amount;
-                action.amount = raise_amount;
-                current_bets[player.seat.offset] = bet;
-            }
-            if (action.action === PSN.action.FOLD) {
-                players_in_play = players_in_play.filter(p => p !== player);
-                if (last_raiser !== null && players_to_call.includes(player)) {
+                if (action.action === PSN.action.CALL) {
                     players_to_call = players_to_call.filter(p => p !== player);
-                    if (players_to_call.length === 0) {
-                        last_raiser.player.chips += last_raiser.raise;
-                        current_bets[last_raiser.player.seat.offset] = last_raiser.previous_bet;
-                        bet -= last_raiser.raise;
-                        pot -= last_raiser.raise;
-                        last_raiser = null;
-                    }
+                    let call_amount = bet - current_bets[player.seat.offset];
+                    call_amount = Math.min(call_amount, player.chips);
+                    player.chips -= call_amount;
+                    current_bets[player.seat.offset] = bet;
+                    pot += call_amount;
+                    last_raiser = null;
+                    action.amount = call_amount;
                 }
             }
-            if (action.action === 'C') {
-                if (players_to_call.includes(action.player)) {
-                    action.action = PSN.action.CALL;
-                } else {
-                    action.action = PSN.action.CHECK;
-                }
+            bet = 0;
+            last_raiser = null;
+            for (let seat of Object.keys(current_bets)) {
+                current_bets[seat] = 0;
             }
-            if (action.action === PSN.action.CALL) {
-                players_to_call = players_to_call.filter(p => p !== player);
-                let call_amount = bet - current_bets[player.seat.offset];
-                call_amount = Math.min(call_amount, player.chips);
-                player.chips -= call_amount;
-                current_bets[player.seat.offset] = bet;
-                pot += call_amount;
-                last_raiser = null;
-                action.amount = call_amount;
-            }
+            this.actions[street] = actions;
         }
         this.pot = pot;
     }
