@@ -275,3 +275,106 @@ describe('post-game chips', () => {
         expect(heads_up.get_seat('BB').chips).toEqual(2400);
     });
 });
+
+describe('validation', () => {
+    it('should reject outright invalid hands', () => {
+        const invalid_start = `200 BTN 3/7/10\n` +
+        `4=6B 5=10B 6=12B\n` +
+        `#P 6:R3B 4:RA 5:C 6:C\n` +
+        `#F[7h2h5s] 5:C 6:RA 5:X\n` +
+        `#T[5d]\n` +
+        `#R[4d]\n` +
+        `#S 6 WIN P 6[QdAh]PA+AQ 5[JdAc]PA+AJ`;
+        expect(() => {
+            new PSN(invalid_start)
+        }).toThrow('Invalid syntax');
+        const no_preflop = `NLH 200 BTN 3/7/10\n` +
+        `4=6B 5=10B 6=12B\n` +
+        `6:R3B 4:RA 5:C 6:C\n` +
+        `#F[7h2h5s] 5:C 6:RA 5:X\n` +
+        `#T[5d]\n` +
+        `#R[4d]\n` +
+        `#S 6 WIN P 6[QdAh]PA+AQ 5[JdAc]PA+AJ`;
+        expect(() => {
+            new PSN(no_preflop)
+        }).toThrow('Invalid syntax');
+    });
+
+    it('should expect big blind at minimum for bet info', () => {
+        const invalid_bet = `NLH BTN 3/7/10\n` +
+        `4=6B 5=10B 6=12B\n` +
+        `#P 6:R3B 4:RA 5:C 6:C\n` +
+        `#F[7h2h5s] 5:C 6:RA 5:X\n` +
+        `#T[5d]\n` +
+        `#R[4d]\n` +
+        `#S 6 WIN P 6[QdAh]PA+AQ 5[JdAc]PA+AJ`;
+        expect(() => {
+            new PSN(invalid_bet)
+        }).toThrow('big blind');
+    });
+
+    it('should reject more than 3 bet info pieces', () => {
+        const invalid_bet = `NLH 10|20|40|80 BTN 3/7/10\n` +
+        `4=6B 5=10B 6=12B\n` +
+        `#P 6:R3B 4:RA 5:C 6:C\n` +
+        `#F[7h2h5s] 5:C 6:RA 5:X\n` +
+        `#T[5d]\n` +
+        `#R[4d]\n` +
+        `#S 6 WIN P 6[QdAh]PA+AQ 5[JdAc]PA+AJ`;
+        expect(() => {
+            new PSN(invalid_bet)
+        }).toThrow('no more than 3');
+    });
+
+    it('should expect number of seats at minimum for seat info', () => {
+        const invalid_seats = `NLH 200\n` +
+        `4=6B 5=10B 6=12B\n` +
+        `#P 6:R3B 4:RA 5:C 6:C\n` +
+        `#F[7h2h5s] 5:C 6:RA 5:X\n` +
+        `#T[5d]\n` +
+        `#R[4d]\n` +
+        `#S 6 WIN P 6[QdAh]PA+AQ 5[JdAc]PA+AJ`;
+        expect(() => {
+            new PSN(invalid_seats)
+        }).toThrow('seat info not present');
+    });
+
+    it('should reject more than 2 seat info pieces when not using BTN notation', () => {
+        const invalid_seats = `NLH 200 7/10/100\n` +
+        `4=6B 5=10B 6=12B\n` +
+        `#P 6:R3B 4:RA 5:C 6:C\n` +
+        `#F[7h2h5s] 5:C 6:RA 5:X\n` +
+        `#T[5d]\n` +
+        `#R[4d]\n` +
+        `#S 6 WIN P 6[QdAh]PA+AQ 5[JdAc]PA+AJ`;
+        expect(() => {
+            new PSN(invalid_seats)
+        }).toThrow('no more than 2');
+    });
+
+    it('should expect BTN notation to contain sufficient seat info', () => {
+        const invalid_btn = `NLH 200 BTN 3\n` +
+        `4=6B 5=10B 6=12B\n` +
+        `#P 6:R3B 4:RA 5:C 6:C\n` +
+        `#F[7h2h5s] 5:C 6:RA 5:X\n` +
+        `#T[5d]\n` +
+        `#R[4d]\n` +
+        `#S 6 WIN P 6[QdAh]PA+AQ 5[JdAc]PA+AJ`;
+        expect(() => {
+            new PSN(invalid_btn)
+        }).toThrow('seat info not present');
+    });
+
+    it('should reject more than 3 seat info pieces when using BTN notation', () => {
+        const invalid_btn = `NLH 200 BTN 3/7/10/100\n` +
+        `4=6B 5=10B 6=12B\n` +
+        `#P 6:R3B 4:RA 5:C 6:C\n` +
+        `#F[7h2h5s] 5:C 6:RA 5:X\n` +
+        `#T[5d]\n` +
+        `#R[4d]\n` +
+        `#S 6 WIN P 6[QdAh]PA+AQ 5[JdAc]PA+AJ`;
+        expect(() => {
+            new PSN(invalid_btn)
+        }).toThrow('no more than 3');
+    });
+});
