@@ -561,7 +561,6 @@ class PSN {
             }
             if (!seat_valid) {
                 if (this.btn_notation) {
-                    console.log(this.seats);
                     throw 'Error: Invalid seat identifier `' + seat + '`, must be a number between 1 and `seats`';
                 } else {
                     throw 'Error: Invalid seat identifier `' + seat + '`, must be a valid position';
