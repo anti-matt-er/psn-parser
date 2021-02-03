@@ -9,7 +9,7 @@ const hand1_psn =
 #F[7h2h5s] 5:C 6:RA 5:X
 #T[5d]
 #R[4d]
-#S 6 WIN P 6[QdAh]PA+AQ 5[JdAc]PA+AJ`;
+#S 6 WIN P 6[QdAh]PA+AQ 4[JdAc]PA+AJ`;
 const hand1 = new PSN(hand1_psn);
 
 const hand2_psn =
@@ -32,7 +32,7 @@ BTN=3210 SB=6B BB=2000 UTG=12B UTG+1=8B199 HJ=9B25 CO=4045
 UTG:R3B UTG+1:X HJ:X CO:X BTN:X SB:RA BB:C UTG:C
 
 #Flop[7♥ 2♥ 5♠]
-BB:C UTG:RA BB:X UTG[Q♦ A♥] BB[J♦ A♣]
+BB:C UTG:RA BB:X UTG[Q♦ A♥] SB[J♦ A♣]
 
 #Turn[5♦]
 
