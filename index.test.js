@@ -284,7 +284,7 @@ describe('validation', () => {
         `#F[7h2h5s] 5:C 6:RA 5:X\n` +
         `#T[5d]\n` +
         `#R[4d]\n` +
-        `#S 6 WIN P 6[QdAh]PA+AQ 5[JdAc]PA+AJ`;
+        `#S 6 WIN P 6[QdAh]PA+AQ 4[JdAc]PA+AJ`;
         expect(() => {
             new PSN(invalid_start)
         }).toThrow('Invalid syntax');
@@ -294,7 +294,7 @@ describe('validation', () => {
         `#F[7h2h5s] 5:C 6:RA 5:X\n` +
         `#T[5d]\n` +
         `#R[4d]\n` +
-        `#S 6 WIN P 6[QdAh]PA+AQ 5[JdAc]PA+AJ`;
+        `#S 6 WIN P 6[QdAh]PA+AQ 4[JdAc]PA+AJ`;
         expect(() => {
             new PSN(no_preflop)
         }).toThrow('Invalid syntax');
@@ -307,7 +307,7 @@ describe('validation', () => {
         `#F[7h2h5s] 5:C 6:RA 5:X\n` +
         `#T[5d]\n` +
         `#R[4d]\n` +
-        `#S 6 WIN P 6[QdAh]PA+AQ 5[JdAc]PA+AJ`;
+        `#S 6 WIN P 6[QdAh]PA+AQ 4[JdAc]PA+AJ`;
         expect(() => {
             new PSN(invalid_bet)
         }).toThrow('big blind');
@@ -320,7 +320,7 @@ describe('validation', () => {
         `#F[7h2h5s] 5:C 6:RA 5:X\n` +
         `#T[5d]\n` +
         `#R[4d]\n` +
-        `#S 6 WIN P 6[QdAh]PA+AQ 5[JdAc]PA+AJ`;
+        `#S 6 WIN P 6[QdAh]PA+AQ 4[JdAc]PA+AJ`;
         expect(() => {
             new PSN(invalid_bet)
         }).toThrow('no more than 3');
@@ -333,7 +333,7 @@ describe('validation', () => {
         `#F[7h2h5s] 5:C 6:RA 5:X\n` +
         `#T[5d]\n` +
         `#R[4d]\n` +
-        `#S 6 WIN P 6[QdAh]PA+AQ 5[JdAc]PA+AJ`;
+        `#S 6 WIN P 6[QdAh]PA+AQ 4[JdAc]PA+AJ`;
         expect(() => {
             new PSN(invalid_seats)
         }).toThrow('seat info not present');
@@ -346,7 +346,7 @@ describe('validation', () => {
         `#F[7h2h5s] 5:C 6:RA 5:X\n` +
         `#T[5d]\n` +
         `#R[4d]\n` +
-        `#S 6 WIN P 6[QdAh]PA+AQ 5[JdAc]PA+AJ`;
+        `#S 6 WIN P 6[QdAh]PA+AQ 4[JdAc]PA+AJ`;
         expect(() => {
             new PSN(invalid_seats)
         }).toThrow('no more than 2');
@@ -359,7 +359,7 @@ describe('validation', () => {
         `#F[7h2h5s] 5:C 6:RA 5:X\n` +
         `#T[5d]\n` +
         `#R[4d]\n` +
-        `#S 6 WIN P 6[QdAh]PA+AQ 5[JdAc]PA+AJ`;
+        `#S 6 WIN P 6[QdAh]PA+AQ 4[JdAc]PA+AJ`;
         expect(() => {
             new PSN(invalid_btn)
         }).toThrow('seat info not present');
@@ -372,7 +372,7 @@ describe('validation', () => {
         `#F[7h2h5s] 5:C 6:RA 5:X\n` +
         `#T[5d]\n` +
         `#R[4d]\n` +
-        `#S 6 WIN P 6[QdAh]PA+AQ 5[JdAc]PA+AJ`;
+        `#S 6 WIN P 6[QdAh]PA+AQ 4[JdAc]PA+AJ`;
         expect(() => {
             new PSN(invalid_btn)
         }).toThrow('no more than 3');
