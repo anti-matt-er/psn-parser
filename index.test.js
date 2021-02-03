@@ -377,4 +377,160 @@ describe('validation', () => {
             new PSN(invalid_btn)
         }).toThrow('no more than 3');
     });
+
+    it('should reject invalid dates', () => {
+        const invalid_date = `NLH 200 BTN 3/7/10\n` +
+        `DATE notadate\n` +
+        `4=6B 5=10B 6=12B\n` +
+        `#P 6:R3B 4:RA 5:C 6:C\n` +
+        `#F[7h2h5s] 5:C 6:RA 5:X\n` +
+        `#T[5d]\n` +
+        `#R[4d]\n` +
+        `#S 6 WIN P 6[QdAh]PA+AQ 4[JdAc]PA+AJ`;
+        expect(() => {
+            new PSN(invalid_date)
+        }).toThrow('Invalid DATE');
+    });
+
+    it('should reject invalid currencies', () => {
+        const invalid_cash = `NLH 200 BTN 3/7/10\n` +
+        `CASH quids\n` +
+        `4=6B 5=10B 6=12B\n` +
+        `#P 6:R3B 4:RA 5:C 6:C\n` +
+        `#F[7h2h5s] 5:C 6:RA 5:X\n` +
+        `#T[5d]\n` +
+        `#R[4d]\n` +
+        `#S 6 WIN P 6[QdAh]PA+AQ 4[JdAc]PA+AJ`;
+        expect(() => {
+            new PSN(invalid_cash)
+        }).toThrow('Invalid CASH');
+    });
+
+    it('should reject invalid tournament levels', () => {
+        const invalid_level = `NLH 200 BTN 3/7/10\n` +
+        `LVL first\n` +
+        `4=6B 5=10B 6=12B\n` +
+        `#P 6:R3B 4:RA 5:C 6:C\n` +
+        `#F[7h2h5s] 5:C 6:RA 5:X\n` +
+        `#T[5d]\n` +
+        `#R[4d]\n` +
+        `#S 6 WIN P 6[QdAh]PA+AQ 4[JdAc]PA+AJ`;
+        expect(() => {
+            new PSN(invalid_level)
+        }).toThrow('Invalid LVL');
+    });
+
+    it('should reject invalid buy-in values', () => {
+        const invalid_buy = `NLH 200 BTN 3/7/10\n` +
+        `BUY 50QUID\n` +
+        `4=6B 5=10B 6=12B\n` +
+        `#P 6:R3B 4:RA 5:C 6:C\n` +
+        `#F[7h2h5s] 5:C 6:RA 5:X\n` +
+        `#T[5d]\n` +
+        `#R[4d]\n` +
+        `#S 6 WIN P 6[QdAh]PA+AQ 4[JdAc]PA+AJ`;
+        expect(() => {
+            new PSN(invalid_buy)
+        }).toThrow('Invalid BUY, currency');
+        const no_decimal = `NLH 200 BTN 3/7/10\n` +
+        `CASH GBP BUY 50\n` +
+        `4=6B 5=10B 6=12B\n` +
+        `#P 6:R3B 4:RA 5:C 6:C\n` +
+        `#F[7h2h5s] 5:C 6:RA 5:X\n` +
+        `#T[5d]\n` +
+        `#R[4d]\n` +
+        `#S 6 WIN P 6[QdAh]PA+AQ 4[JdAc]PA+AJ`;
+        expect(() => {
+            new PSN(no_decimal)
+        }).toThrow('Invalid BUY, amount');
+        const tournament_no_currency = `NLH 200 BTN 3/7/10\n` +
+        `LVL 1 BUY 5.00\n` +
+        `4=6B 5=10B 6=12B\n` +
+        `#P 6:R3B 4:RA 5:C 6:C\n` +
+        `#F[7h2h5s] 5:C 6:RA 5:X\n` +
+        `#T[5d]\n` +
+        `#R[4d]\n` +
+        `#S 6 WIN P 6[QdAh]PA+AQ 4[JdAc]PA+AJ`;
+        expect(() => {
+            new PSN(tournament_no_currency)
+        }).toThrow('Invalid BUY, currency');
+        const cash_no_currency = `NLH 200 BTN 3/7/10\n` +
+        `BUY 5.00\n` +
+        `4=6B 5=10B 6=12B\n` +
+        `#P 6:R3B 4:RA 5:C 6:C\n` +
+        `#F[7h2h5s] 5:C 6:RA 5:X\n` +
+        `#T[5d]\n` +
+        `#R[4d]\n` +
+        `#S 6 WIN P 6[QdAh]PA+AQ 4[JdAc]PA+AJ`;
+        expect(() => {
+            new PSN(cash_no_currency)
+        }).toThrow('Invalid BUY, currency');
+        const invalid_currency = `NLH 200 BTN 3/7/10\n` +
+        `BUY 5.00LOL\n` +
+        `4=6B 5=10B 6=12B\n` +
+        `#P 6:R3B 4:RA 5:C 6:C\n` +
+        `#F[7h2h5s] 5:C 6:RA 5:X\n` +
+        `#T[5d]\n` +
+        `#R[4d]\n` +
+        `#S 6 WIN P 6[QdAh]PA+AQ 4[JdAc]PA+AJ`;
+        expect(() => {
+            new PSN(invalid_currency)
+        }).toThrow('Invalid BUY, currency');
+    });
+
+    it('should reject invalid seat identifiers', () => {
+        const invalid_pos_seats_num = `NLH 200 7/10\n` +
+        `4=6B 5=10B 6=12B\n` +
+        `#P 6:R3B 4:RA 5:C 6:C\n` +
+        `#F[7h2h5s] 5:C 6:RA 5:X\n` +
+        `#T[5d]\n` +
+        `#R[4d]\n` +
+        `#S 6 WIN P 6[QdAh]PA+AQ 4[JdAc]PA+AJ`;
+        expect(() => {
+            new PSN(invalid_pos_seats_num)
+        }).toThrow('must be a valid position');
+        const invalid_btn_seats_pos = `NLH 200 BTN 3/7/10\n` +
+        `SB=6B BB=10B UTG=12B\n` +
+        `#P UTG:R3B SB:RA BB:C UTG:C\n` +
+        `#F[7h2h5s] BB:C UTG:RA BB:X\n` +
+        `#T[5d]\n` +
+        `#R[4d]\n` +
+        `#S UTG WIN P UTG[QdAh]PA+AQ SB[JdAc]PA+AJ`;
+        expect(() => {
+            new PSN(invalid_btn_seats_pos)
+        }).toThrow('must be a number');
+        const invalid_position = `NLH 200 7/10\n` +
+        `SB=6B BB=10B MP=12B\n` +
+        `#P MP:R3B SB:RA BB:C MP:C\n` +
+        `#F[7h2h5s] BB:C MP:RA BB:X\n` +
+        `#T[5d]\n` +
+        `#R[4d]\n` +
+        `#S MP WIN P MP[QdAh]PA+AQ SB[JdAc]PA+AJ`;
+        expect(() => {
+            new PSN(invalid_position)
+        }).toThrow('must be a valid position');
+        const seat_out_of_range = `NLH 200 BTN 3/7/10\n` +
+        `8=6B 5=10B 6=12B\n` +
+        `#P 6:R3B 8:RA 5:C 6:C\n` +
+        `#F[7h2h5s] 5:C 6:RA 5:X\n` +
+        `#T[5d]\n` +
+        `#R[4d]\n` +
+        `#S 6 WIN P 6[QdAh]PA+AQ 8[JdAc]PA+AJ`;
+        expect(() => {
+            new PSN(seat_out_of_range)
+        }).toThrow('must be a number');
+    });
+
+    it('should reject assigning invalid information to seats', () => {
+        const invalid_chips = `NLH 200 BTN 3/7/10\n` +
+        `4=9A9 5=Fiddlesticks 6=UWOTM8\n` +
+        `#P 6:R3B 4:RA 5:C 6:C\n` +
+        `#F[7h2h5s] 5:C 6:RA 5:X\n` +
+        `#T[5d]\n` +
+        `#R[4d]\n` +
+        `#S 6 WIN P 6[QdAh]PA+AQ 4[JdAc]PA+AJ`;
+        expect(() => {
+            new PSN(invalid_chips)
+        }).toThrow('must be a valid chip value or a name surrounded by double quotes');
+    });
 });
