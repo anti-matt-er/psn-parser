@@ -155,7 +155,13 @@ class PSN {
         };
         let splitted = {
             tags: {},
-            raw: [],
+            seat_info: false,
+            cards: {
+                flop: false,
+                turn: false,
+                river: false,
+                players: []
+            },
             seats: [],
             actions: {
                 preflop: [],
@@ -214,6 +220,7 @@ class PSN {
                                 section,
                                 sections[i + 2]
                             ]);
+                            i += 2;
                         }
                     }
                     if (!winner) {
@@ -223,12 +230,15 @@ class PSN {
                             }
                             if (section.toLowerCase().indexOf('#flop[') === 0) {
                                 street = 'flop';
+                                splitted.cards.flop = section;
                             }
                             if (section.toLowerCase().indexOf('#turn[') === 0) {
                                 street = 'turn';
+                                splitted.cards.turn = section;
                             }
                             if (section.toLowerCase().indexOf('#river[') === 0) {
                                 street = 'river';
+                                splitted.cards.river = section;
                             }
                             if (section.toLowerCase().indexOf('#end[') === 0) {
                                 street = null;
@@ -241,12 +251,15 @@ class PSN {
                             }
                             if (section.toLowerCase().indexOf('#f[') === 0) {
                                 street = 'flop';
+                                splitted.cards.flop = section;
                             }
                             if (section.toLowerCase().indexOf('#t[') === 0) {
                                 street = 'turn';
+                                splitted.cards.turn = section;
                             }
                             if (section.toLowerCase().indexOf('#r[') === 0) {
                                 street = 'river';
+                                splitted.cards.river = section;
                             }
                             if (section.toLowerCase().indexOf('#e[') === 0) {
                                 street = null;
@@ -254,8 +267,16 @@ class PSN {
                             if (section.toLowerCase().indexOf('#s[') === 0) {
                                 street = null;
                             }
+                        } else {
+                            if (
+                                section.indexOf('[') !== -1 &&
+                                section.indexOf(']') !== -1
+                            ) {
+                                splitted.cards.players.push(section);
+                            } else if (splitted.seat_info === false) {
+                                splitted.seat_info = section;
                         }
-                        splitted.raw.push(this.unquote(section));
+                        }
                     }
                 }
             }
@@ -420,7 +441,7 @@ class PSN {
     }
 
     extract_seats() {
-        let seats = this.sections.raw[0];
+        let seats = this.sections.seat_info;
         if (this.btn_notation) {
             seats = this.sections.tags.BTN;
         }
