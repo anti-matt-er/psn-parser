@@ -276,6 +276,130 @@ describe('post-game chips', () => {
     });
 });
 
+describe('cards', () => {
+    const flop = [
+        {
+            id: '7h',
+            rank: '7',
+            suit: 'h',
+            verbose: {
+                name: '7 of Hearts',
+                rank: '7',
+                suit: 'Hearts'
+            }
+        },
+        {
+            id: '2h',
+            rank: '2',
+            suit: 'h',
+            verbose: {
+                name: '2 of Hearts',
+                rank: '2',
+                suit: 'Hearts'
+            }
+        },
+        {
+            id: '5s',
+            rank: '5',
+            suit: 's',
+            verbose: {
+                name: '5 of Spades',
+                rank: '5',
+                suit: 'Spades'
+            }
+        }
+    ];
+    const turn = [{
+        id: '5d',
+        rank: '5',
+        suit: 'd',
+        verbose: {
+            name: '5 of Diamonds',
+            rank: '5',
+            suit: 'Diamonds'
+        }
+    }];
+    const river = [{
+        id: '4d',
+        rank: '4',
+        suit: 'd',
+        verbose: {
+            name: '4 of Diamonds',
+            rank: '4',
+            suit: 'Diamonds'
+        }
+    }];
+    const board = flop.concat(turn).concat(river);
+    const UTG_hole = [
+        {
+            id: 'Qd',
+            rank: 'Q',
+            suit: 'd',
+            verbose: {
+                name: 'Queen of Diamonds',
+                rank: 'Queen',
+                suit: 'Diamonds'
+            }
+        },
+        {
+            id: 'Ah',
+            rank: 'A',
+            suit: 'h',
+            verbose: {
+                name: 'Ace of Hearts',
+                rank: 'Ace',
+                suit: 'Hearts'
+            }
+        }
+    ];
+    const SB_hole = [
+        {
+            id: 'Jd',
+            rank: 'J',
+            suit: 'd',
+            verbose: {
+                name: 'Jack of Diamonds',
+                rank: 'Jack',
+                suit: 'Diamonds'
+            }
+        },
+        {
+            id: 'Ac',
+            rank: 'A',
+            suit: 'c',
+            verbose: {
+                name: 'Ace of Clubs',
+                rank: 'Ace',
+                suit: 'Clubs'
+            }
+        }
+    ];
+
+    it('should parse board cards', () => {
+        expect(hand1.cards.board).toEqual(board);
+        expect(hand1.cards.flop).toEqual(flop);
+        expect(hand1.cards.turn).toEqual(turn);
+        expect(hand1.cards.river).toEqual(river);
+        expect(hand2.cards.board).toEqual(board);
+        expect(hand2.cards.flop).toEqual(flop);
+        expect(hand2.cards.turn).toEqual(turn);
+        expect(hand2.cards.river).toEqual(river);
+        expect(heads_up.cards.board).toEqual(board);
+        expect(heads_up.cards.flop).toEqual(flop);
+        expect(heads_up.cards.turn).toEqual(turn);
+        expect(heads_up.cards.river).toEqual(river);
+    });
+
+    it('should parse player hole cards', () => {
+        expect(hand1.get_seat('UTG').cards).toEqual(UTG_hole);
+        expect(hand1.get_seat('SB').cards).toEqual(SB_hole);
+        expect(hand2.get_seat('UTG').cards).toEqual(UTG_hole);
+        expect(hand2.get_seat('SB').cards).toEqual(SB_hole);
+        expect(heads_up.get_seat('BB').cards).toEqual(UTG_hole);
+        expect(heads_up.get_seat('BTN').cards).toEqual(SB_hole);
+    });
+});
+
 describe('validation', () => {
     it('should reject outright invalid hands', () => {
         const invalid_start = `200 BTN 3/7/10\n` +
