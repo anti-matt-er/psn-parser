@@ -444,6 +444,8 @@ class PSN {
         let seats = this.sections.seat_info;
         if (this.btn_notation) {
             seats = this.sections.tags.BTN;
+        } else if (seats === false) {
+            throw 'Error: seat info not present!';
         }
         seats = seats.split('/');
         for (let seat of seats) {
