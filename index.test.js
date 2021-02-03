@@ -43,7 +43,7 @@ UTG WIN 3600 UTG[Q♦ A♥]PA+AQ`;
 const hand2 = new PSN(hand2_psn);
 
 const heads_up_psn =
-`NLH 200 2
+`NLH 200 BTN 1/2
 1=12B 2=6B
 #P 1:R3B 2:RA 1:C
 #F[7h2h5s]
