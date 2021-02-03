@@ -1,5 +1,7 @@
 'use strict';
 
+const isCurrencyCode = require('currency-code-validator');
+
 class PSN {
     sections = null;
     game_start = false;
@@ -11,6 +13,13 @@ class PSN {
     dealer = false;
     seats = 0;
     max_seats = 0;
+    date = false;
+    cash_game = false;
+    tournament = false;
+    currency = false;
+    level = false;
+    buy_in = false;
+    info = false;
 
     players = [];
     actions = {
@@ -460,24 +469,24 @@ class PSN {
                 case 'DATE':
                     let date = new Date(value);
                     if (isNaN(date)) {
-                        throw 'Error: Invaild DATE format (' + value + ')!';
+                        throw 'Error: Invalid DATE format (' + value + '), must be a valid ISO 8601 timestamp!';
                     }
                     this.date = date;
                     break;
                 case 'CASH':
                     let currency = value;
-                    if (currency.length !== 3) {
-                        throw 'Error: Invalid CASH currency!';
+                    if (!isCurrencyCode(currency, true)) {
+                        throw 'Error: Invalid CASH, must be a valid ISO 4217 currency code!';
                     }
                     this.tournament = false;
                     this.cash_game = true;
                     this.currency = currency;
                     break;
                 case 'LVL':
-                    let level = parseInt(value);
-                    if (isNaN(level)) {
-                        throw 'Error: Invalid LEVEL!';
+                    if (!/^\d+$/.test(value)) {
+                        throw 'Error: Invalid LVL!';
                     }
+                    let level = parseInt(value);
                     this.tournament = true;
                     this.cash_game = false;
                     this.level = level;
@@ -489,27 +498,41 @@ class PSN {
                         /[^a-z]/i.test(buy_in)
                     ) {
                         this.currency = buy_in.slice(-3);
+                        if (!isCurrencyCode(this.currency, true)) {
+                            throw 'Error: Invalid BUY, currency must be a valid ISO 4217 currency code!';
+                        }
                         buy_in = buy_in.slice(0, -3);
+                        if (!this.tournament) {
+                            this.cash_game = true;
+                        }
                     }
                     if (buy_in.indexOf('.') === -1) {
-                        throw 'Error: Invalid BUY!';
+                        throw 'Error: Invalid BUY, amount must include a decimal point!';
                     }
                     buy_in = buy_in.split('.');
+                    if (
+                        !/^\d+$/.test(buy_in[0]) ||
+                        !/^\d+$/.test(buy_in[1])
+                    ) {
+                        throw 'Error: Invalid BUY, amount must be numeric!';
+                    }
                     buy_in = [
                         parseInt(buy_in[0]),
                         parseInt(buy_in[1])
                     ];
-                    if (
-                        isNaN(buy_in[0]) ||
-                        isNaN(buy_in[1])
-                    ) {
-                        throw 'Error: Invalid BUY!';
-                    }
                     this.buy_in = buy_in;
                     break;
                 case 'INFO':
                     this.info = value;
                     break;
+            }
+        }
+        if (!this.currency) {
+            if (this.cash_game) {
+                throw 'Error: Invalid BUY, currency must be specified for cash games!';
+            }
+            if (this.tournament) {
+                throw 'Error: Invalid BUY, currency must be specified for tournaments!';
             }
         }
     }
@@ -523,17 +546,27 @@ class PSN {
             let value = seat_value[1];
             let seat_valid = false;
             if (this.btn_notation) {
-                seat = parseInt(seat);
-                if (!isNaN(seat)) {
-                    seat_valid = true;
+                if (/^\d+$/.test(seat)) {
+                    seat = parseInt(seat);
+                    if (seat > 0 && seat <= this.seats) {
+                        seat_valid = true;
+                    }
                 }
-            } else {
+            } else if (!/^\d+$/.test(seat)) {
                 seat_valid = true;
             }
-            if (!seat_valid) {
-                throw 'Error: Invlaid seat identifier `' + seat + '`';
-            }
             let player = this.get_seat(seat);
+            if (player === false) {
+                seat_valid = false;
+            }
+            if (!seat_valid) {
+                if (this.btn_notation) {
+                    console.log(this.seats);
+                    throw 'Error: Invalid seat identifier `' + seat + '`, must be a number between 1 and `seats`';
+                } else {
+                    throw 'Error: Invalid seat identifier `' + seat + '`, must be a valid position';
+                }
+            }
             let quoted = this.unquote(value);
             if (value !== quoted) {
                 player.name = quoted;
@@ -541,7 +574,11 @@ class PSN {
                 if (value === 'HERO') {
                     player.hero = true;
                 } else {
-                    player.stack = this.read_chips(value);
+                    let chip_value = this.read_chips(value);
+                    if (chip_value === false) {
+                        throw 'Error: Seat assignment must be a valid chip value or a name surrounded by double quotes!';
+                    }
+                    player.stack = chip_value;
                     player.chips = player.stack;
                 }
             }
