@@ -28,6 +28,12 @@ class PSN {
         turn: [],
         river: []
     };
+    cards = {
+        board: [],
+        flop: [],
+        turn: [],
+        river: []
+    }
 
     pot = 0;
 
@@ -61,6 +67,30 @@ class PSN {
             { offset: 1, ids: ['BB', 'B'] }
         ]
     };
+
+    static card_values = {
+        rank: [
+            { id: '2' },
+            { id: '3' },
+            { id: '4' },
+            { id: '5' },
+            { id: '6' },
+            { id: '7' },
+            { id: '8' },
+            { id: '9' },
+            { id: 'T', verbose: '10' },
+            { id: 'J', verbose: 'Jack' },
+            { id: 'Q', verbose: 'Queen' },
+            { id: 'K', verbose: 'King' },
+            { id: 'A', verbose: 'Ace' }
+        ],
+        suit: [
+            { id: 'c', symbol: '♣', verbose: 'Clubs' },
+            { id: 'd', symbol: '♦', verbose: 'Diamonds' },
+            { id: 'h', symbol: '♥', verbose: 'Hearts' },
+            { id: 's', symbol: '♠', verbose: 'Spades' },
+        ]
+    }
 
     constructor(notation) {
         notation = PSN.normalise_notation(notation);
@@ -275,7 +305,7 @@ class PSN {
                                 splitted.cards.players.push(section);
                             } else if (splitted.seat_info === false) {
                                 splitted.seat_info = section;
-                        }
+                            }
                         }
                     }
                 }
@@ -410,6 +440,7 @@ class PSN {
         this.extract_tags();
         this.extract_players();
         this.extract_actions();
+        this.extract_cards();
         this.award_winners();
     }
 
@@ -775,6 +806,95 @@ class PSN {
             this.actions[street] = actions;
         }
         this.pot = pot;
+    }
+
+    extract_cards() {
+        const get_card = (id) => {
+            let rank = id.slice(0, 1);
+            let suit = id.slice(1);
+            let verbose_rank = rank;
+            let verbose_suit;
+            let rank_lookup = PSN.card_values.rank.find(r => r.id === rank);
+            if (typeof rank_lookup === 'undefined') {
+                throw 'Error: `' + rank + '` is not a valid rank!';
+            }
+            if ('verbose' in rank_lookup) {
+                verbose_rank = rank_lookup.verbose;
+            }
+            let suit_lookup = PSN.card_values.suit.find(s => s.id === suit || s.symbol === suit);
+            if (typeof suit_lookup === 'undefined') {
+                throw 'Error: `' + suit + '` is not a valid suit!';
+            }
+            suit = suit_lookup.id;
+            verbose_suit = suit_lookup.verbose;
+            return {
+                id: rank + suit,
+                rank: rank,
+                suit: suit,
+                verbose: {
+                    name: verbose_rank + ' of ' + verbose_suit,
+                    rank: verbose_rank,
+                    suit: verbose_suit
+                }
+            }
+        };
+        const parse_cards = (string) => {
+            let invalid_error = 'Error: `' + string + '` does not contain valid cards!';
+            let open = string.indexOf('[');
+            let close = string.indexOf(']');
+            if (
+                open === -1 ||
+                close === -1 ||
+                open >= close
+            ) {
+                throw invalid_error;
+            }
+            let cards_string = string.slice(open + 1, close);
+            cards_string = cards_string.replace(/\s/g, '');
+            if (cards_string.length % 2 === 1) {
+                throw invalid_error;
+            }
+            let num_cards = Math.trunc(cards_string.length / 2);
+            let cards = [];
+            for (let i = 0; i < num_cards; i++) {
+                let index = i * 2;
+                let id = cards_string[index] + cards_string[index + 1];
+                cards.push(get_card(id));
+            }
+            return cards;
+        };
+        if (this.sections.cards.flop !== false) {
+            this.cards.flop = parse_cards(this.sections.cards.flop);
+            if (this.cards.flop.length !== 3) {
+                throw 'Error: Flop must contain 3 cards!';
+            }
+        }
+        if (this.sections.cards.turn !== false) {
+            this.cards.turn = parse_cards(this.sections.cards.turn);
+            if (this.cards.turn.length !== 1) {
+                throw 'Error: Turn must contain 1 card!';
+            }
+        }
+        if (this.sections.cards.river !== false) {
+            this.cards.river = parse_cards(this.sections.cards.river);
+            if (this.cards.river.length !== 1) {
+                throw 'Error: River must contain 1 card!';
+            }
+        }
+        this.cards.board = this.cards.flop.concat(this.cards.turn).concat(this.cards.river);
+        for (let hole of this.sections.cards.players) {
+            let cards_start = hole.indexOf('[');
+            let seat = hole.slice(0, cards_start);
+            let player = this.get_seat(seat);
+            if (player === false) {
+                throw 'Error: Invalid seat identifier `' + seat + '`';
+            }
+            let cards = parse_cards(hole);
+            if (cards.length !== 2) {
+                throw 'Error: Hole cards must contain 2 cards!';
+            }
+            player.cards = cards;
+        }
     }
 
     award_winners() {
